@@ -21,13 +21,11 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
-import { useUserStore } from '@/stores/users';
 
 const router = useRouter();
-const userStore = useUserStore();
 
 const messages = ref([{ text: '안녕하세요! 금융 상품 추천을 원하시나요?' }]);
 const userResponses = ref([]);
@@ -37,10 +35,10 @@ const questions = reactive([
   { id: 0, text: '금융 상품 추천을 원하시나요?', options: ['네, 원합니다', '아니요, 괜찮습니다'] },
   { id: 1, text: '어떤 상품을 원하시나요?', options: ['예금', '적금', '투자', '카드'] },
   { id: 2, text: '주로 사용하는 은행이 어디인가요?', options: ['국민은행', '신한은행', '하나은행', '우리은행', '상관없음'] },
-  { id: 3, text: '투자 자금의 투자 기간 수준은?', options: ['6개월 미만', '6개월 이상~1년', '1년 이상~2년 미만', '2년 이상~3년 미만', '3년 이상'] },
-  { id: 4, text: '이용해본 경험이 있는 상품은?', options: ['예금', '적금', '펀드', '주식', '없음'] },
-  { id: 5, text: '투자 목적은 무엇인가요?', options: ['단기 수익', '장기 투자', '위험 회피', '재산 증식'] },
-  { id: 6, text: '금융상품의 목적은 무엇인가요?', options: ['안정성', '수익성', '유동성'] },
+  { id: 3, text: '이용해본 경험이 있는 상품은?', options: ['예금', '적금', '펀드', '주식', '없음'] },
+  { id: 4, text: '투자 자금의 기간 수준은?', options: ['6개월 미만', '6개월 이상~1년', '1년 이상~2년', '2년 이상~3년', '3년 이상'] },
+  { id: 5, text: '금융상품에 가용 금액 수준은?', options: ['100만원 이하', '100만원~500만원', '500만원~1000만원', '1000만원 이상'] },
+  { id: 6, text: '투자 목적은 무엇인가요?', options: ['단기 수익', '장기 투자', '위험 회피', '재산 증식'] },
   { id: 7, text: '기대하는 이익 수준은?', options: ['1% 이하', '1% ~ 3%', '3% ~ 5%', '5% 이상'] },
 ]);
 
@@ -51,14 +49,12 @@ function handleResponse(option) {
   messages.value.push({ text: `사용자: ${option}` });
   userResponses.value.push(option);
 
-  // 첫 질문에서 "아니요, 괜찮습니다"를 선택한 경우 메인 페이지로 이동
   if (currentQuestion.value.id === 0 && option === '아니요, 괜찮습니다') {
     console.log('사용자가 "아니요"를 선택했습니다. 메인 페이지로 이동합니다.');
-    router.push('/').catch((err) => console.error('페이지 이동 오류:', err));
+    router.replace('/main').catch((err) => console.error('페이지 이동 오류:', err));
     return;
   }
 
-  // 현재 질문이 마지막 질문인지 확인
   if (currentQuestion.value.id === questions.length - 1) {
     console.log('마지막 질문에 도달했습니다. 설문을 제출합니다.');
     submitSurvey();
@@ -76,7 +72,9 @@ async function submitSurvey() {
 
     if (response.data.status === 'success') {
       console.log('설문 제출이 완료되었습니다. 추천 페이지로 이동합니다.');
-      router.push('/recommendation').catch((err) => console.error('페이지 이동 오류:', err));
+      router.replace('/recommendation').catch((err) => console.error('페이지 이동 오류:', err));
+      // 라우터 리셋 시도
+      resetRouter();
     } else {
       messages.value.push({ text: '서버에서 오류가 발생했습니다. 다시 시도해주세요.' });
     }
@@ -85,7 +83,6 @@ async function submitSurvey() {
     messages.value.push({ text: '오류가 발생했습니다. 다시 시도해주세요.' });
   }
 }
-
 </script>
 
 <style scoped>
