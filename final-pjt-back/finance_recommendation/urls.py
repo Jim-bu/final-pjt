@@ -22,4 +22,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', TemplateView.as_view(template_name="index.html")),
     path('api/', include('surveys.urls')),
+    path('api/v1/', include('articles.urls')),
+    path('accounts/', include('dj_rest_auth.urls')),
+    path('accounts/signup/', include('dj_rest_auth.registration.urls')),
+    path('currencies/', include('currencies.urls')),
+    path('bankings/', include('bankings.urls')),
 ]

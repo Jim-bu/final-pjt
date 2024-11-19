@@ -44,7 +44,7 @@ export const useUserStore = defineStore('users', () => {
     const { username, name, email, password1, password2 } = payload;
 
     try {
-      await axios.post(`${API_URL}/accounts/registration/`, {
+      await axios.post(`${API_URL}/accounts/signup/`, {
         username,
         name,
         email,

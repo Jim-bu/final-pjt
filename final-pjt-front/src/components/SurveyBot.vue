@@ -22,7 +22,7 @@
 
 <script setup>
 import { ref, reactive, onBeforeUnmount } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import axios from 'axios';
 
 const router = useRouter();
@@ -51,7 +51,9 @@ function handleResponse(option) {
 
   if (currentQuestion.value.id === 0 && option === '아니요, 괜찮습니다') {
     console.log('사용자가 "아니요"를 선택했습니다. 메인 페이지로 이동합니다.');
-    router.replace('/main').catch((err) => console.error('페이지 이동 오류:', err));
+    router.push('/main').then(() => {
+      window.location.reload(); // 페이지 강제 새로고침
+    });
     return;
   }
 
@@ -64,6 +66,25 @@ function handleResponse(option) {
   }
 }
 
+onBeforeRouteLeave((to, from, next) => {
+  messages.value = [{ text: '안녕하세요! 금융 상품 추천을 원하시나요?' }];
+  userResponses.value = [];
+  selectedOption.value = null;
+  currentQuestion.value = questions[0];
+  next();
+});
+
+// 설문 페이지가 다시 로드될 때 상태 초기화
+onBeforeRouteUpdate((to, from, next) => {
+  if (to.name === 'survey') {
+    messages.value = [{ text: '안녕하세요! 금융 상품 추천을 원하시나요?' }];
+    userResponses.value = [];
+    selectedOption.value = null;
+    currentQuestion.value = questions[0];
+  }
+  next();
+})
+
 async function submitSurvey() {
   try {
     const response = await axios.post('/api/submit-survey/', {
@@ -72,9 +93,9 @@ async function submitSurvey() {
 
     if (response.data.status === 'success') {
       console.log('설문 제출이 완료되었습니다. 추천 페이지로 이동합니다.');
-      router.replace('/recommendation').catch((err) => console.error('페이지 이동 오류:', err));
+      router.push('/recommendation').catch((err) => console.error('페이지 이동 오류:', err));
       // 라우터 리셋 시도
-      resetRouter();
+      // resetRouter();
     } else {
       messages.value.push({ text: '서버에서 오류가 발생했습니다. 다시 시도해주세요.' });
     }
@@ -89,7 +110,7 @@ async function submitSurvey() {
 .chat-bot {
   padding: 20px;
   max-width: 400px;
-  margin: 0 auto;
+  margin: 100px auto 0 auto; 
   background-color: #f0f0f0;
   border-radius: 10px;
 }

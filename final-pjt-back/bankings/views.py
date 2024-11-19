@@ -3,7 +3,7 @@ from rest_framework.response import Response
 import requests
 from .serializers import *
 from .models import *
-from my_api.settings import BANKINGS_KEY
+from finance_recommendation.settings import BANKINGS_KEY
 # 경로만 참조하는거
 
 # save_deposit_products requests 모듈을 활용하여 정기예금 상품 목록 데이터를 가져와 정기예금

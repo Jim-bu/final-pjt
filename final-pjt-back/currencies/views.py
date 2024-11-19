@@ -3,7 +3,7 @@ from rest_framework.response import Response
 import requests
 from .serializers import *
 from .models import *
-from my_api.settings import CURRENCIES_KEY
+from finance_recommendation.settings import CURRENCIES_KEY
 
 
 @api_view(['GET'])

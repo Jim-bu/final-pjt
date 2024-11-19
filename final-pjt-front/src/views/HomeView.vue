@@ -3,17 +3,20 @@ import { useUserStore } from '@/stores/users'
 import Map from '@/components/Map.vue'
 import ExchangeCalculater from '@/components/ExchangeCalculater.vue'
 import ExchangeCard from '@/components/ExchangeCard.vue'
+import GoBack from '@/components/GoBack.vue'
 
 const userStore = useUserStore()
 </script>
 
 <template>
-  <div>
+  <div class="home-page">
+    <GoBack />
     <v-carousel
       cycle
       hide-delimiters
       show-arrows="hover"
       height="400"
+      class="full-width-carousel"
     >
       <v-carousel-item>
         <div class="caro-item-text">
@@ -23,15 +26,17 @@ const userStore = useUserStore()
             <p><span class="color">금융상품</span>을 <span class="color">추천</span> 받자!</p>
           </div>
           <v-btn
+            v-if="userStore.isLogin"
             block
             rounded="xl"
             size="x-large"
             color="#1089FF"
             class="caro-item-btn"
-            :to="userStore.isLogin ? { name: 'productRecommend', params: { username: userStore.userInfo.username }} : { name: 'signUp'}"
-          >회원가입하고 추천받기</v-btn>
+            :to="{ name: 'productRecommend', params: { username: userStore.userInfo.username }}"
+            >
+              회원가입하고 추천받기
+          </v-btn>
         </div> 
-        <!-- <img src="@/assets/carousel-1.jpeg" class="caro-item-img" width="400"> -->
       </v-carousel-item>
 
       <v-carousel-item>
@@ -50,7 +55,6 @@ const userStore = useUserStore()
             :to="{ name: 'postList'}"
           >금융상품 자유 게시판 바로가기</v-btn>
         </div>
-        <!-- <img src="@/assets/carousel-2.jpeg" class="caro-item-img" width="500"> -->
       </v-carousel-item>
 
       <v-carousel-item>
@@ -60,137 +64,130 @@ const userStore = useUserStore()
             <p><span class="color text-h1 font-weight-bold">MYFI</span></p>
           </div>
           <v-btn
+            v-if="userStore.isLogin"
             block
             rounded="xl"
             size="x-large"
             color="#1089FF"
             class="caro-item-btn"
-            :to="userStore.isLogin ? { name: 'productRecommend', params: { username: userStore.userInfo.username }} : { name: 'signUp'}"
-          >회원가입하고 추천받기</v-btn>
+            :to="{ name: 'productRecommend', params: { username: userStore.userInfo.username }}"
+            >
+              회원가입하고 추천받기
+          </v-btn>
         </div> 
-        <!-- <img src="@/assets/carousel-3.jpeg" class="caro-item-img" width="400"> -->
       </v-carousel-item>
     </v-carousel>
-  </div>
 
-  <div class="container d-flex justify-space-between align-center">
-    <div class="d-flex flex-column w-100">
-
-      <div>
-        <ExchangeCard
-          :currency="'USD'"
-          :name="'미국 달러'"
-          width="47%"
-          style="display: inline-block;"
-          class="mb-5"
-          elevation="5"
-        />
-        <ExchangeCard
-          :currency="'JPY'"
-          :name="'일본 옌'"
-          width="47%"
-          style="display: inline-block;"
-          class="mb-5 ml-3"
-          elevation="5"
-        />
-      </div>
-
-      <div class="calculater">
-        <h1><span class="color">환율</span> 계산기</h1>
-        <ExchangeCalculater class="elevation-4"/>
-      </div>
-      
+    <div class="exchange-section">
+      <ExchangeCard
+        class="exchange-card"
+        :currency="'USD'"
+        :name="'미국 달러'"
+        elevation="5"
+      />
+      <ExchangeCard
+        class="exchange-card"
+        :currency="'JPY'"
+        :name="'일본 엔'"
+        elevation="5"
+      />
     </div>
-    
-    
-    <Map 
-      :width="350"
-      :height="600"
-      class="mt-5"                                                                                                                                                                                                                                                              
-    />
-  </div>
 
-  
+    <div class="calculater-section">
+      <h1><span class="color">환율</span> 계산기</h1>
+      <ExchangeCalculater class="elevation-4" />
+    </div>
+
+    <div class="map-section">
+      <Map :width="350" :height="600" class="mt-5" />
+    </div>
+  </div>
 </template>
 
 <style scoped>
+.home-page {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.full-width-carousel {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
 .v-carousel {
   border-bottom: 1px solid #DBDBDB;
 }
 
-.calculater {
-  width: 95%;
-  position: relative;
-}
-
-.calculater > h1 {
-  position: absolute;
-  z-index: 100;
-  top: 20px;
-  left: 18px;
-}
-
 .caro-item-text {
   position: absolute;
-  top: 26%;
-  left: 15vw;
+  top: 20%;
+  left: 5vw; /* 좌측 간격을 조정 */
+  width: calc(100% - 10vw); /* 좌우 5vw씩 간격을 두도록 조정 */
+  text-align: center;
 }
 
 .item3 {
   position: absolute;
-  top: 26%;
-  left: 28vw;
+  top: 20%;
+  left: 5vw;
+  width: calc(100% - 10vw);
+  text-align: center;
 }
 
-.item3 > p {
-  margin-left: 5px;
-  font-size: 20px;
-  font-weight: 600;
-}
-
+.item3 > p,
 .caro-item-text > p {
-  margin-left: 5px;
-  font-size: 20px;
+  margin: 5px 0;
+  font-size: 18px; /* 앱 같은 작은 화면에 맞게 줄인 폰트 크기 */
   font-weight: 600;
 }
 
 .title {
   margin: 5px 0;
-  font-size: 40px;
+  font-size: 28px; /* 좁은 화면에 맞게 폰트 크기 조정 */
   font-weight: 900;
-  letter-spacing: -2px;
-}
-
-.caro-item-btn {
-  font-size: 20px;
-  font-weight: 600;
   letter-spacing: -1px;
 }
 
-.caro-item-img {
-  position: absolute;
-  /* top: 2rem; */
-  right: 17vw;
+.caro-item-btn {
+  font-size: 16px; /* 좁은 화면에 맞게 줄인 버튼 폰트 크기 */
+  font-weight: 600;
+  letter-spacing: -1px;
+  margin-top: 10px;
 }
 
-@media (max-width: 1250px) {
-  .caro-item-img {
-    right: 10vw;
-  }
+.exchange-section {
+  display: flex;
+  flex-direction: column; /* 세로로 정렬 */
+  gap: 15px;
+  margin-top: 20px;
 }
 
-@media (min-width: 1600px) {
-  .caro-item-img {
-    right: 20vw;
-  }
-
-  .caro-item-text {
-    left: 20vw;
-  }
+.exchange-card {
+  width: 100%; /* 가로 크기를 100%로 설정하여 한 줄에 한 카드만 표시 */
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-radius: 8px;
 }
 
-.container {
-  width: 1400px;
-  margin: 2rem auto;
+.calculater-section {
+  width: 100%;
+  margin-top: 20px;
+  background-color: #f8f9fa;
+  padding: 16px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.map-section {
+  width: 100%;
+  margin-top: 20px;
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
 }
 </style>
