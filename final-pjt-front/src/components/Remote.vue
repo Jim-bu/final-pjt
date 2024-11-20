@@ -1,55 +1,53 @@
 <script setup>
 import { ref } from 'vue';
 
-const showRemote = ref(false);
-
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 const toggleChatbot = () => {
-  // 여기에 챗봇을 활성화하거나 나타내는 로직을 추가합니다.
   console.log('챗봇 활성화!');
 };
 </script>
 
 <template>
+  <!-- Remote 버튼은 화면의 최상단에 고정 -->
   <div class="remote-wrapper">
-    <v-btn
-      icon
-      color="primary"
-      @click="scrollToTop"
-      class="remote-button"
-    >
+    <div class="remote-button" @click="scrollToTop">
       <v-icon>mdi-arrow-up</v-icon>
-    </v-btn>
-
-    <v-btn
-      icon
-      color="primary"
-      @click="toggleChatbot"
-      class="remote-button"
-    >
+    </div>
+    <div class="remote-button" @click="toggleChatbot">
       <v-icon>mdi-robot</v-icon>
-    </v-btn>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .remote-wrapper {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
+  position: fixed; /* 모든 화면에서 고정 */
+  right: calc((100vw - 600px) / 2 - 40px); /* 600px 중앙 기준에서 20px 튀어나오도록 설정 */
+  bottom: 20px; /* 화면 하단에서 20px 위 */
   display: flex;
   flex-direction: column;
   gap: 15px;
-  z-index: 999;
+  z-index: 9999; /* 항상 최상단에 표시 */
 }
 
 .remote-button {
+  background-color: #fff; /* 흰색 박스 */
+  color: #000; /* 검은색 아이콘 */
   width: 50px;
   height: 50px;
-  border-radius: 50%;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 50%; /* 버튼을 동그랗게 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* 약간의 그림자 */
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.remote-button:hover {
+  transform: scale(1.1); /* 호버 시 크기 증가 */
 }
 </style>

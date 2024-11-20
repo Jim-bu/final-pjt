@@ -1,166 +1,197 @@
-<script setup>
-import { ref, onMounted } from 'vue'
-
-const MAP_API_KEY = import.meta.env.VITE_MAP_API_KEY
-
-const props = defineProps({
-  width: Number,
-  height: Number,
-  keyWord: String
-})
-
-const center = ref([37.566826, 126.9786567])
-const level = ref(3)
-
-onMounted(() => {
-  if (window.kakao && window.kakao.maps) {
-    initMap()
-  } else {
-    const script = document.createElement('script')
-
-    script.onload = () => kakao.maps.load(initMap)
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?autoload=false&appkey=${MAP_API_KEY}&libraries=services`
-    document.head.appendChild(script)
-  }
-})
-
-const initMap = () => {
-  // const container = document.getElementById('map')
-
-  // if ("geolocation" in navigator) {
-  //   navigator.geolocation.getCurrentPosition((position) => {
-  //     const currentPosition = [ position.coords.latitude, position.coords.longitude ]
-  //     console.log(currentPosition)
-
-  //     const options = {
-  //       center: new kakao.maps.LatLng(currentPosition[0], currentPosition[1]),
-  //       level: 5,
-  //     }
-
-  //     const map = new kakao.maps.Map(container, options)
-
-  //   })
-  // }
-
-  // 마커를 클릭하면 장소명을 표출할 인포윈도우 입니다
-  const infowindow = new kakao.maps.InfoWindow({zIndex:1});
-
-  const mapContainer = document.getElementById('map'), // 지도를 표시할 div 
-      mapOption = {
-          center: new kakao.maps.LatLng(center.value[0], center.value[1]), // 지도의 중심좌표
-          // level: 3 // 지도의 확대 레벨
-          level: level.value // 지도의 확대 레벨
-      };  
-
-  // 지도를 생성합니다    
-  var map = new kakao.maps.Map(mapContainer, mapOption); 
-  map.setDraggable(true);
-
-  kakao.maps.event.addListener(map, 'center_changed', function() {
-
-  // 지도의  레벨을 얻어옵니다
-  const levelMap = map.getLevel();
-  
-  level.value = levelMap
-
-
-  // 지도의 중심좌표를 얻어옵니다 
-  const latlng = map.getCenter(); 
-  // const lat = latlng.getLat()
-  // const lng = latlng.getLng()
-  center.value = [latlng.getLat(), latlng.getLng()]
-
-  // console.log(`위도 : ${center.value[0]} 경도 : ${center.value[1]}`)
-
-  // mapOption = {
-  //         center: new kakao.maps.LatLng(lat, lng), // 지도의 중심좌표
-  //         level: 3 // 지도의 확대 레벨
-  //     }; 
-  });
-
-  // 장소 검색 객체를 생성합니다
-  const ps = new kakao.maps.services.Places(map); 
-  
-  // 키워드에 따라 은행을 검색합니다
-  // if (props.keyWord === '전체보기') {
-  //   ps.categorySearch('BK9', placesSearchCB, {useMapBounds:true}); 
-  // } else {
-  //   ps.keywordSearch(props.keyWord, placesSearchCB, {useMapBounds:true}); 
-  // }
-  // ps.keywordSearch(props.keyWord, placesSearchCB); 
-  ps.categorySearch('BK9', placesSearchCB, {useMapBounds:true}); 
-  
-
-  
-
-  // 키워드 검색 완료 시 호출되는 콜백함수 입니다
-  function placesSearchCB (data, status, pagination) {
-      if (status === kakao.maps.services.Status.OK) {
-          for (var i=0; i<data.length; i++) {
-              displayMarker(data[i]);    
-          }       
-      }
-  }
-
-  // 지도에 마커를 표시하는 함수입니다
-  function displayMarker(place) {
-      // 마커를 생성하고 지도에 표시합니다
-      const marker = new kakao.maps.Marker({
-          map: map,
-          position: new kakao.maps.LatLng(place.y, place.x) 
-      });
-
-      // 마커에 클릭이벤트를 등록합니다
-      kakao.maps.event.addListener(marker, 'click', function() {
-          // 마커를 클릭하면 장소명이 인포윈도우에 표출됩니다
-          infowindow.setContent('<div style="padding:5px;font-size:12px;">' + place.place_name + '</div>');
-          infowindow.open(map, marker);
-      });
-  }
-}
-
-const clickCurrentSearch = function () {
-  // 장소 검색 객체를 생성합니다
-
-  initMap()
-}
-</script>
-
 <template>
-  <div class="map-container">
-    <v-btn
-      variant="text"
-      color="#1089FF"
-      @click="clickCurrentSearch"
-      class="current-search-btn"
-      rounded="xl"
-      elevation="8"
-      size="large"
-    > 
-        <v-icon class="me-1">
-          mdi-reload
-        </v-icon>
-      현 지도에서 검색</v-btn>
-    <div id="map" :style="`width: ${width}px; height: ${height}px;`" class="elevation-5"></div>
+  <div class="map-component">
+    <div class="controls">
+      <label>
+        도/광역시:
+        <select v-model="selectedProvince" @change="updateCities">
+          <option disabled value="">도/광역시 선택</option>
+          <option v-for="info in mapStore.infos" :key="info.id" :value="info.prov">
+            {{ info.prov }}
+          </option>
+        </select>
+      </label>
+
+      <label>
+        도시:
+        <select v-model="selectedCity" :disabled="!selectedProvince">
+          <option disabled value="">도시 선택</option>
+          <option v-for="city in availableCities" :key="city" :value="city">
+            {{ city }}
+          </option>
+        </select>
+      </label>
+
+      <label>
+        은행:
+        <select v-model="selectedBank">
+          <option disabled value="">은행 선택</option>
+          <option v-for="bank in mapStore.banks" :key="bank" :value="bank">
+            {{ bank }}
+          </option>
+        </select>
+      </label>
+
+      <button class="search-btn" @click="searchOnMap">검색</button>
+    </div>
+
+    <div id="mapContainer" class="map"></div>
   </div>
 </template>
 
+<script setup lang="ts">
+import { ref, computed, onMounted } from "vue";
+import { useMapStore } from "@/stores/map";
+import { loadKakaoMap } from "@/stores/map";
+
+// Kakao 지도 객체와 관련된 상태
+const map = ref<any>(null);
+const markers = ref<any[]>([]);
+const infowindow = ref<any>(null);
+
+// Pinia 상태
+const mapStore = useMapStore();
+const selectedProvince = ref("");
+const selectedCity = ref("");
+const selectedBank = ref("");
+
+// 선택한 도/광역시에 따른 도시 목록 계산
+const availableCities = computed(() => {
+  const selectedInfo = mapStore.infos.find((info) => info.prov === selectedProvince.value);
+  return selectedInfo ? selectedInfo.city : [];
+});
+
+// 지도 초기화
+const initializeMap = async () => {
+  try {
+    const kakao = await loadKakaoMap();
+    kakao.maps.load(() => {
+      const mapContainer = document.getElementById("mapContainer");
+      const mapOption = {
+        center: new kakao.maps.LatLng(37.566826, 126.9786567), // 서울 중심
+        level: 3,
+      };
+
+      map.value = new kakao.maps.Map(mapContainer, mapOption);
+      infowindow.value = new kakao.maps.InfoWindow({ zIndex: 1 });
+    });
+  } catch (error) {
+    console.error("지도 초기화 실패:", error);
+  }
+};
+
+// 검색 기능
+const searchOnMap = () => {
+  if (!selectedProvince.value || !selectedCity.value || !selectedBank.value) {
+    alert("모든 항목을 선택해주세요.");
+    return;
+  }
+
+  const keyword = `${selectedProvince.value} ${selectedCity.value} ${selectedBank.value}`;
+  performSearch(keyword);
+};
+
+// Kakao Places API로 장소 검색
+const performSearch = (keyword: string) => {
+  const kakao = (window as any).kakao;
+  const ps = new kakao.maps.services.Places();
+
+  ps.keywordSearch(keyword, (data, status) => {
+    if (status === kakao.maps.services.Status.OK) {
+      displayMarkers(data);
+
+      // 첫 번째 결과를 중심으로 지도 이동
+      if (data.length > 0) {
+        const firstPlace = data[0];
+        map.value.setCenter(new kakao.maps.LatLng(firstPlace.y, firstPlace.x));
+      }
+    } else {
+      alert("검색 결과가 없습니다.");
+    }
+  });
+};
+
+// 마커 표시
+const displayMarkers = (places: any[]) => {
+  const kakao = (window as any).kakao;
+
+  // 기존 마커 제거
+  markers.value.forEach((marker) => marker.setMap(null));
+  markers.value = [];
+
+  places.forEach((place) => {
+    const marker = new kakao.maps.Marker({
+      map: map.value,
+      position: new kakao.maps.LatLng(place.y, place.x),
+    });
+
+    kakao.maps.event.addListener(marker, "click", () => {
+      infowindow.value.setContent(
+        `<div style="padding:5px;">${place.place_name}</div>`
+      );
+      infowindow.value.open(map.value, marker);
+    });
+
+    markers.value.push(marker);
+  });
+};
+
+// 도시 목록 초기화
+const updateCities = () => {
+  selectedCity.value = "";
+};
+
+// 컴포넌트 마운트 시 지도 초기화
+onMounted(() => {
+  initializeMap();
+});
+</script>
+
 <style scoped>
-#map {
-  border-radius: 10px;
+.map-component {
+  max-width: 600px;
+  margin: 0 auto;
+  font-family: "Arial", sans-serif;
 }
 
-.map-container {
-  position: relative;
-  border-radius: 10px;
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
 }
 
-.current-search-btn {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  z-index: 100;
-  transform: translateX(-50%);
-  background-color: white;
+.controls label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  color: #333;
+}
+
+.controls select {
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.search-btn {
+  background-color: #b8ac8e;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.search-btn:hover {
+  background-color: #857945;
+}
+
+.map {
+  width: 100%;
+  height: 400px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
 }
 </style>

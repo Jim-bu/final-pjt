@@ -3,6 +3,7 @@
     <NavBar />
     <div class="centered-content">
       <router-view /> <!-- 각 페이지의 콘텐츠가 여기에 표시됨 -->
+      <div class="content-padding"></div> <!-- 추가 여백 -->
     </div>
     <Remote />
   </v-app>
@@ -28,7 +29,7 @@ html, body {
   align-items: center; /* 수평 중앙 정렬 */
   min-height: 100vh; /* 화면 전체 높이 채움 */
   background-color: #f5f5f5; /* 배경 색상 */
-  overflow: visible
+  overflow-x: hidden;
 }
 
 .centered-content {
@@ -42,6 +43,11 @@ html, body {
   flex-grow: 1; /* 남는 공간 채우기 */
 }
 
+.content-padding {
+  height: 100px; /* 추가 여백 높이 */
+  background-color: transparent; /* 투명 배경 */
+}
+
 @media (max-width: 600px) {
   .centered-content {
     width: 100%;
@@ -49,5 +55,18 @@ html, body {
     margin: 0;
     border-radius: 0;
   }
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100px; /* 네비게이션 바 높이 */
+  background-color: #424530; /* Fern 색상 */
+  color: #FFEFCD; /* Warm Ivory 색상 */
+  text-align: center;
+  line-height: 60px;
+  z-index: 10;
 }
 </style>

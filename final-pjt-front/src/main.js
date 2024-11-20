@@ -17,11 +17,13 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 const vuetify = createVuetify({
   components,
   directives,
-  locale: {
-    locale: 'ko',
-    fallback: 'en'
+  lang: {
+    locales: { ko },
+    current: 'ko',
+    fallback: 'en',
   },
 });
+
 
 const app = createApp(App)
 

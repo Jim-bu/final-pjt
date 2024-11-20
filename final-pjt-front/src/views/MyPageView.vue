@@ -11,9 +11,9 @@ const userStore = useUserStore()
     <header class="d-flex align-center mb-7">
       <RouterLink :to="{ name: 'myPage', params: { username: userStore.userInfo.username }}" exact-active-class="active">회원 정보 관리</RouterLink>
       <p>|</p>
-      <RouterLink :to="{ name: 'productManage', params: { username: userStore.userInfo.username }}" exact-active-class="active">가입 상품 관리</RouterLink>
-      <p>|</p>
-      <RouterLink :to="{ name: 'productRecommend', params: { username: userStore.userInfo.username }}" exact-active-class="active">상품 추천 받기</RouterLink>
+      <!-- <RouterLink :to="{ name: 'productManage', params: { username: userStore.userInfo.username }}" exact-active-class="active">가입 상품 관리</RouterLink>
+      <p>|</p> -->
+      <!-- <RouterLink :to="{ name: 'productRecommend', params: { username: userStore.userInfo.username }}" exact-active-class="active">상품 추천 받기</RouterLink> -->
     </header>
     <RouterView />
   </div>
@@ -21,12 +21,12 @@ const userStore = useUserStore()
 
 <style scoped>
 .container {
-  width: 1000px;
+  width: 600px;
   margin: 2rem auto;
 }
 
 a.active {
-  color: #1089FF;
+  color: #5c5c4e;
 }
 
 header {

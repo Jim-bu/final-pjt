@@ -6,7 +6,7 @@ import axios from 'axios';
 export const useUserStore = defineStore('users', () => {
   const API_URL = 'http://127.0.0.1:8000';
   const router = useRouter();
-  const token = ref(null);
+  const token = ref(localStorage.getItem('token'));
   const isLogin = computed(() => token.value !== null);
   const userInfo = ref({});
   const userContractDeposits = ref([]);
@@ -51,28 +51,33 @@ export const useUserStore = defineStore('users', () => {
         password1,
         password2,
       });
-      await logIn({ username, password: password1 });
-    } catch (error) {
-      console.error('회원가입 오류:', error);
+      const loginSuccess = await logIn({ username, password: password1 });
+
+    if (loginSuccess) {
+      router.push({ name: 'Main' }); // 메인 페이지로 리디렉션
+    } else {
+      console.error('자동 로그인 실패');
     }
+  } catch (error) {
+    console.error('회원가입 오류:', error.response?.data || error);
+  }
   };
 
   // 로그인 함수
   const logIn = async (payload) => {
-    const { username, password } = payload;
-
     try {
+      const { username, password } = payload;
       const response = await axios.post(`${API_URL}/accounts/login/`, {
         username,
         password,
       });
       token.value = response.data.key;
+      localStorage.setItem('token', token.value); // 토큰 저장
       await getUserInfo(username);
-      router.push({ name: 'home' });
+      router.push({ name: 'Main' });
       return true;
     } catch (error) {
-      console.clear();
-      console.error('로그인 오류:', error);
+      console.error('로그인 오류:', error.response?.data || error.message);
       return false;
     }
   };
@@ -80,16 +85,18 @@ export const useUserStore = defineStore('users', () => {
   // 로그아웃 함수
   const logOut = async () => {
     try {
-      await axios.post(`${API_URL}/accounts/logout/`, {
-        headers: {
-          Authorization: `Token ${token.value}`,
-        },
-      });
+      if (!token.value) return; // 토큰 없으면 로그아웃 필요 없음
+      await axios.post(
+        `${API_URL}/accounts/logout/`, {
+        headers: { Authorization: `Token ${token.value}` },
+        }
+      );
       token.value = null;
+      localStorage.removeItem('token'); // 토큰 제거
       userInfo.value = {};
-      router.push({ name: 'home' });
+      router.push({ name: 'Main' }); // 메인 페이지로 이동
     } catch (error) {
-      console.error('로그아웃 오류:', error);
+      console.error('로그아웃 오류:', error.response?.data || error.message);
     }
   };
 

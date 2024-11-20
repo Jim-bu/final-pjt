@@ -5,6 +5,10 @@ import RecommendationView from '@/views/RecommendationView.vue';
 import SurveyBot from '../components/SurveyBot.vue';
 import SignUpView from '@/views/SignUpView.vue'
 import SignInView from '@/views/SignInView.vue'
+// import MyPage from '@/components/MyPage.vue';
+import BankMapView from '@/views/BankMapView.vue';
+import MyPageView from '@/views/MyPageView.vue';
+import MyPage from '@/components/MyPage.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -45,6 +49,41 @@ const router = createRouter({
         }
         next();
       },
+    },
+    
+    {
+      path: "/nearBank",
+      name: "nearBank",
+      component: () => import("@/views/BankMapView.vue"),
+    },
+    {
+      path: '/mypage/:username*',
+      name: 'mypage',
+      component: MyPageView,
+      beforeEnter: (to, from) => {
+        const userStore = useUserStore()
+        if (!userStore.isLogin) {
+          alert('로그인 후 이용 가능합니다.')
+          return { name: 'signIn'}
+        }
+      },
+      children: [
+        {
+          path: '',
+          name: 'myPage',
+          component: MyPage
+        },
+        // {
+        //   path: 'products',
+        //   name: 'productManage',
+        //   component: ProductManage
+        // },
+        // {
+        //   path: 'recommend',
+        //   name: 'productRecommend',
+        //   component: ProductRecommend
+        // }
+      ]
     },
   ]
 });

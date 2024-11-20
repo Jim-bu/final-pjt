@@ -2,6 +2,7 @@
   <div class="recommendation-page">
     <h1>맞춤 금융 상품 추천</h1>
 
+    <!-- 로그인되지 않았을 때 -->
     <div v-if="!userStore.isLogin">
       <div class="overlay"></div>
       <div class="login-popup">
@@ -12,6 +13,7 @@
       </div>
     </div>
 
+    <!-- 로그인 상태일 때 -->
     <div v-else class="recommend-list">
       <div
         v-for="(product, index) in recommendedProducts"
@@ -27,27 +29,29 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useUserStore } from '@/stores/users';
+import { ref, onMounted } from "vue";
+import { useUserStore } from "@/stores/users";
 
-const userStore = useUserStore();
-const recommendedProducts = ref([]);
+const userStore = useUserStore(); // 사용자 상태
+const recommendedProducts = ref([]); // 추천 상품 목록
 
 onMounted(() => {
+  // 로그인 상태일 때만 추천 상품 로드
   if (userStore.isLogin) {
     recommendedProducts.value = [
-      { name: '안전한 예금 상품', description: '안정적인 금리를 제공합니다.', rate: 3.5 },
-      { name: '높은 금리 적금 상품', description: '높은 이율을 제공합니다.', rate: 4.2 },
+      { name: "안전한 예금 상품", description: "안정적인 금리를 제공합니다.", rate: 3.5 },
+      { name: "높은 금리 적금 상품", description: "높은 이율을 제공합니다.", rate: 4.2 },
     ];
   }
 });
 
+// 로그인/회원가입 페이지 이동 함수
 function goToLogin() {
-  window.location.href = '/login';
+  window.location.href = "/login";
 }
 
 function goToSignup() {
-  window.location.href = '/signup';
+  window.location.href = "/signup";
 }
 </script>
 
@@ -58,6 +62,7 @@ function goToSignup() {
   margin: 0 auto;
 }
 
+/* 로그인 팝업 */
 .overlay {
   position: fixed;
   top: 0;
@@ -65,7 +70,7 @@ function goToSignup() {
   width: 100vw;
   height: 100vh;
   background: rgba(0, 0, 0, 0.7);
-  z-index: 1000;
+  z-index: 999;
 }
 
 .login-popup {
@@ -77,7 +82,7 @@ function goToSignup() {
   padding: 20px;
   border-radius: 15px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  z-index: 1001;
+  z-index: 1000;
   text-align: center;
   animation: popup-fade-in 0.5s ease-in-out;
 }
@@ -104,10 +109,9 @@ function goToSignup() {
   background-color: #0056b3;
 }
 
+/* 추천 상품 리스트 */
 .recommend-list {
   margin-top: 20px;
-  filter: blur(5px);
-  opacity: 0.5;
 }
 
 .recommend-item {
