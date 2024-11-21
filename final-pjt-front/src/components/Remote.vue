@@ -16,9 +16,6 @@ const toggleChatbot = () => {
     <div class="remote-button" @click="scrollToTop">
       <v-icon>mdi-arrow-up</v-icon>
     </div>
-    <div class="remote-button" @click="toggleChatbot">
-      <v-icon>mdi-robot</v-icon>
-    </div>
   </div>
 </template>
 

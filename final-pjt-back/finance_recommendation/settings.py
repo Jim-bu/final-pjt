@@ -43,16 +43,17 @@ CURRENCIES_KEY = 'GO74rCNUkQZb0D4TUlE5OsyNr5eiS78e'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
+# ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
+ALLOWED_HOSTS = []
 
 # Application definition
 
 INSTALLED_APPS = [
-    'surveys',
     'accounts',
     'articles',
     'bankings',
     'currencies',
+    'surveys',
     'rest_framework',
     'rest_framework.authtoken',
     'dj_rest_auth',
@@ -96,15 +97,14 @@ MIDDLEWARE = [
 
 CORS_ALLOW_ALL_ORIGINS = True
 # CORS_ALLOWED_ORIGINS = [
-#     'http://127.0.0.1:5173',
+#     'http://127.0.0.1:8000',
 #     'http://localhost:5173',
 # ]
 
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
-    'http://localhost:8000',
+    'http://localhost:5173',
 ]
-
 
 ROOT_URLCONF = 'finance_recommendation.urls'
 
@@ -126,17 +126,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'finance_recommendation.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -156,7 +155,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -167,7 +165,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -180,3 +177,9 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.User'
+
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = "none"  # 이메일 인증 필수
+ACCOUNT_AUTHENTICATION_METHOD = "username"  # 또는 "email"

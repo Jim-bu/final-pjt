@@ -9,6 +9,8 @@ import SignInView from '@/views/SignInView.vue'
 import BankMapView from '@/views/BankMapView.vue';
 import MyPageView from '@/views/MyPageView.vue';
 import MyPage from '@/components/MyPage.vue';
+import ProductListView from '@/views/ProductListView.vue';
+import ProductCompareView from '@/views/ProductCompareView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -85,6 +87,16 @@ const router = createRouter({
         // }
       ]
     },
+    {
+      path: "/productList",
+      name: "productList",
+      component: ProductListView,
+    },
+    {
+      path: "/productcompare",
+      name: "productcompare",
+      component: ProductCompareView
+    }
   ]
 });
 

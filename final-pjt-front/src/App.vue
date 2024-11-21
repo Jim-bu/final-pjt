@@ -2,7 +2,7 @@
   <v-app>
     <NavBar />
     <div class="centered-content">
-      <router-view /> <!-- 각 페이지의 콘텐츠가 여기에 표시됨 -->
+      <router-view />
       <div class="content-padding"></div> <!-- 추가 여백 -->
     </div>
     <Remote />

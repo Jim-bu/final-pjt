@@ -1,205 +1,121 @@
 <template>
   <div class="home-page">
-    <GoBack />
-    <v-carousel
-  cycle
-  hide-delimiters
-  show-arrows="hover"
-  height="400"
-  class="full-width-carousel"
->
-  <v-carousel-item>
-    <div class="caro-item-text">
-      <p><span class="color">예 ∙ 적금 금리</span>를 쉽게 비교하고</p>
-      <div class="title">
-        <p>나에게 맞는</p>
-        <p><span class="color">금융상품</span>을 <span class="color">추천</span> 받자!</p>
-      </div>
-      <v-btn
-        v-if="userStore.isLogin"
-        block
-        rounded="xl"
-        size="x-large"
-        color="#1089FF"
-        class="caro-item-btn"
-        :to="{ name: 'productRecommend', params: { username: userStore.userInfo.username }}"
-      >
-        회원가입하고 추천받기
-      </v-btn>
-    </div>
-  </v-carousel-item>
-
-  <v-carousel-item>
-    <div class="caro-item-text">
-      <p>금융상품에 관한 이야기 어디서 할 수 있을까?</p>
-      <div class="title">
-        <p><span class="color">금융상품 자유 게시판</span>으로</p>
-        <p>오세요!</p>
-      </div>
-      <v-btn
-        block
-        rounded="xl"
-        size="x-large"
-        color="#1089FF"
-        class="caro-item-btn"
-        :to="{ name: 'postList' }"
-      >
-        금융상품 자유 게시판 바로가기
-      </v-btn>
-    </div>
-  </v-carousel-item>
-
-  <v-carousel-item>
-    <div class="item3">
-      <p><span class="color">금융</span>과 <span class="color">나</span>를 잇다.</p>
-      <div class="title">
-        <p><span class="color text-h1 font-weight-bold">MYFI</span></p>
-      </div>
-      <v-btn
-        v-if="userStore.isLogin"
-        block
-        rounded="xl"
-        size="x-large"
-        color="#1089FF"
-        class="caro-item-btn"
-        :to="{ name: 'productRecommend', params: { username: userStore.userInfo.username }}"
-      >
-        회원가입하고 추천받기
-      </v-btn>
-    </div>
-  </v-carousel-item>
-</v-carousel>
-
-
-    <!-- Exchange Section -->
-    <div class="exchange-section">
-      <ExchangeCard
-        class="exchange-card"
-        :currency="'USD'"
-        :name="'미국 달러'"
-        elevation="5"
-      />
-      <ExchangeCard
-        class="exchange-card"
-        :currency="'JPY'"
-        :name="'일본 엔'"
-        elevation="5"
-      />
+    <!-- 캐러샐 섹션 -->
+    <div class="carousel-container">
+      <Carousel />
     </div>
 
-    <!-- Calculator Section -->
-    <div class="calculater-section">
-      <h1><span class="color">환율</span> 계산기</h1>
-      <ExchangeCalculater class="elevation-4" />
+    <!-- 날짜, 세계 증시, 금융 뉴스 -->
+    <div class="info-box">
+      <p class="date">{{ currentDate }}</p>
+      <Market_NewsView />
     </div>
 
-    <!-- Map Section -->
-    <div class="map-section">
-      <div class="map-container">
-        <Map />
-      </div>
+    <!-- 환율 정보 바로가기 -->
+    <div class="buttons-box">
+      <button class="action-button" @click="goToPage('exchangeRates')">환율 정보 바로가기</button>
+    </div>
+
+    <!-- 지도 섹션 -->
+    <div class="map-box">
+        <Mapcopy />
     </div>
   </div>
 </template>
 
+
+
 <script setup>
+import { ref } from "vue";
 import { useUserStore } from "@/stores/users";
 import Map from "@/components/Map.vue";
-import ExchangeCalculater from "@/components/ExchangeCalculater.vue";
-import ExchangeCard from "@/components/ExchangeCard.vue";
 import GoBack from "@/components/GoBack.vue";
+import Market_NewsView from "./Market_NewsView.vue"
+import Carousel from "@/components/Carousel.vue";
+import Mapcopy from "@/components/Mapcopy.vue"
 
 const userStore = useUserStore();
+
+
+const formatDate = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}.${month}.${day}`;
+};
+
+const currentDate = ref(formatDate(new Date())); // 현재 날짜를 포맷하여 초기화
+
+const goToPage = (page) => {
+  window.location.href = `/${page}`;
+};
 </script>
 
+
 <style scoped>
+/* 메인 컨테이너 */
 .home-page {
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
   padding: 16px;
-}
-
-.full-width-carousel {
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.v-carousel {
-  border-bottom: 1px solid #DBDBDB;
-}
-
-.caro-item-text {
-  position: absolute;
-  top: 20%;
-  left: 5vw;
-  width: calc(100% - 10vw);
-  text-align: center;
-}
-
-.item3 {
-  position: absolute;
-  top: 20%;
-  left: 5vw;
-  width: calc(100% - 10vw);
-  text-align: center;
-}
-
-.item3 > p,
-.caro-item-text > p {
-  margin: 5px 0;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.title {
-  margin: 5px 0;
-  font-size: 28px;
-  font-weight: 900;
-  letter-spacing: -1px;
-}
-
-.caro-item-btn {
-  font-size: 16px;
-  font-weight: 600;
-  letter-spacing: -1px;
-  margin-top: 10px;
-}
-
-.exchange-section {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  margin-top: 20px;
+  gap: 20px;
 }
 
-.exchange-card {
-  width: 100%;
-  background-color: #f8f9fa;
-  padding: 10px;
-  border-radius: 8px;
+/* 캐러샐 섹션 */
+.carousel-container {
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.8);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
-.calculater-section {
-  width: 100%;
-  margin-top: 20px;
-  background-color: #f8f9fa;
-  padding: 16px;
-  border-radius: 10px;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
+/* 날짜, 증시, 금융 뉴스 박스 */
+.info-box {
+  background-color: rgba(240, 240, 240, 0.9); /* 밝은 회색 */
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
-.map-section {
-  width: 100%;
-  margin-top: 20px;
+.date {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+/* 버튼 박스 */
+.buttons-box {
   display: flex;
   justify-content: center;
 }
 
-.map-container {
-  width: 100%;
-  max-width: 600px;
-  height: 400px;
+.action-button {
+  padding: 12px 24px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #3a3a3a; /* 어두운 회색 */
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
+.action-button:hover {
+  background-color: #2b2b2b;
+}
+
+/* 지도 박스 */
+.map-box {
+  background-color: rgba(240, 240, 240, 0.9);
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
 </style>

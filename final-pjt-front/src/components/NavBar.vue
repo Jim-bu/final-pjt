@@ -11,6 +11,9 @@
           <span class="action-link" @click="goToPage('login')">로그인</span>
           <span class="action-link" @click="goToPage('signup')">회원가입</span>
         </template>
+        <RouterLink to="/mypage" exact-active-class="active">
+          <v-icon>mdi-account</v-icon>
+        </RouterLink>
       </div>
     </div>
 
@@ -26,21 +29,24 @@
     <!-- 세 번째 줄 (Sticky) -->
     <div class="navbar-bottom sticky">
       <button class="nav-btn" @click="goToPage('productList')">상품목록</button>
+      <button class="nav-btn" @click="goToPage('productcompare')">상품비교</button>
       <button class="nav-btn" @click="goToPage('recommendation')">상품추천</button>
       <button class="nav-btn" @click="goToPage('nearBank')">근처은행</button>
-      <button class="nav-btn" @click="goToPage('community')">커뮤니티</button>
     </div>
 
     <!-- 하단 네비게이션 -->
     <div class="bottom-navbar">
       <button class="bottom-btn" @click="goToPage('list')">목록</button>
-      <button class="bottom-btn" @click="goToPage('Main')">홈</button>
-      <RouterLink to="/mypage" exact-active-class="active">
-        <v-icon>mdi-account</v-icon>
-      </RouterLink>
+      <div class="chatbot-button-container">
+        <button class="chatbot-button" @click="toggleChatbot">
+          <v-icon>mdi-robot</v-icon>
+        </button>
+      </div>
+      <button class="bottom-btn" @click="goBack">뒤로가기</button>
     </div>
   </div>
 </template>
+
 
 <script>
 import { computed } from 'vue';
@@ -75,13 +81,12 @@ export default {
 /* 전체 컨테이너 */
 .navbar-container {
   width: 100%;
-  max-width: 600px; /* 최대 너비 */
+  max-width: 600px;
   margin: 0 auto;
   background-color: #000;
   color: #fff;
-  box-sizing: border-box;
   position: relative;
-  z-index: 1000; /* 최우선적으로 화면에 표시 */
+  z-index: 1000;
 }
 
 /* 첫 번째 줄 */
@@ -140,22 +145,8 @@ export default {
 .sticky {
   position: sticky;
   top: 0;
-  z-index: 1001; /* 최우선적으로 화면에 표시 */
+  z-index: 1001;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5);
-}
-
-/* 네비게이션 버튼 */
-.nav-btn {
-  background-color: transparent;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.nav-btn:hover {
-  text-decoration: underline;
 }
 
 /* 하단 네비게이션 */
@@ -163,16 +154,16 @@ export default {
   position: fixed;
   bottom: 0;
   left: 50%;
-  transform: translateX(-50%); /* 가운데 정렬 */
+  transform: translateX(-50%);
   width: 100%;
-  max-width: 600px; /* 최대 너비 */
-  background-color: #f2f2f2; /* 연한 회색 */
+  max-width: 600px;
+  background-color: #f2f2f2;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
   padding: 10px 0;
   box-shadow: 0px -2px 5px rgba(0, 0, 0, 0.1);
-  z-index: 1002; /* 최우선적으로 화면에 표시 */
+  z-index: 1002;
 }
 
 .bottom-btn {
@@ -186,5 +177,33 @@ export default {
 
 .bottom-btn:hover {
   text-decoration: underline;
+}
+
+/* 챗봇 버튼 컨테이너 */
+.chatbot-button-container {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1003;
+}
+
+/* 챗봇 버튼 스타일 */
+.chatbot-button {
+  background-color: #336948;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.chatbot-button:hover {
+  background-color: #1b3620;
 }
 </style>

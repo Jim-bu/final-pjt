@@ -1,254 +1,105 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useUserStore } from '@/stores/users'
-import { useVuelidate } from '@vuelidate/core'
-import { required, integer, helpers } from '@vuelidate/validators'
-import axios from 'axios'
+import { ref, onMounted } from "vue";
+import axios from "axios";
 
-const userInfo = ref()
-const dialog = ref(false)
-const isShowProfileInput = ref(false)
-const image = ref()
-const selectedKey = ref('')
-const state = ref({
-  updateValue: ''
-})
-const selectedMonth = ref()
-const months = [
-  { title: '6개월', value: 6 },
-  { title: '12개월', value: 12 },
-  { title: '24개월', value: 24 },
-  { title: '36개월', value: 36 },
-]
+const API_URL = "http://127.0.0.1:8000/accounts/user-fields/"; // Django API URL
+const userFields = ref(null); // 사용자 정보 저장
 
-const userStore = useUserStore()
-const usernameTemp = userStore.userInfo.username
-
-const rules = {
-  updateValue: {
-    required: helpers.withMessage('필수 정보입니다.', required),
-    integer: helpers.withMessage('숫자를 입력해야합니다.', integer)
-  }
-}
-
-const v$ = useVuelidate(rules, state)
-
-onMounted(() => {
-  const storeUserInfo = userStore.userInfo
-  userInfo.value = {
-    '회원번호': storeUserInfo.id,
-    '아이디': storeUserInfo.username,
-    '닉네임': storeUserInfo.name,
-    '이메일': storeUserInfo.email,
-    '나이': storeUserInfo.age,
-    '자산': storeUserInfo.money,
-    '연봉': storeUserInfo.salary,
-    '예금 희망 금액': storeUserInfo.desire_amount_deposit,
-    '예금 희망 기간 (월)': storeUserInfo.deposit_period,
-    '월 적금 희망 금액': storeUserInfo.desire_amount_saving,
-    '적금 희망 기간 (월)': storeUserInfo.saving_period,
-  }
-})
-
-const editValue = function (key, value) {
-  selectedKey.value = key
-  state.value.updateValue = userInfo.value[key]
-  selectedMonth.value = value
-  dialog.value = true
-}
-
-const close = function () {
-  dialog.value = false
-}
-
-const save = function () {
-  v$.value.$validate()
-
-  if (!v$.value.$error || selectedKey.value === '예금 희망 기간 (월)' || selectedKey.value === '적금 희망 기간 (월)') {
-    const key = ref('')
-    const body = ref(state.value.updateValue)
-    if (selectedKey.value === '나이') {
-      key.value = 'age'
-    } else if (selectedKey.value === '자산') {
-      key.value = 'money'
-    } else if (selectedKey.value === '연봉') {
-      key.value = 'salary'
-    } else if (selectedKey.value === '예금 희망 금액') {
-      key.value = 'desire_amount_deposit'
-    } else if (selectedKey.value === '예금 희망 기간 (월)') {
-      key.value = 'deposit_period'
-      body.value = selectedMonth.value
-    } else if (selectedKey.value === '월 적금 희망 금액') {
-      key.value = 'desire_amount_saving'
-    } else if (selectedKey.value === '적금 희망 기간 (월)') {
-      key.value = 'saving_period'
-      body.value = selectedMonth.value
+// 사용자 정보 가져오기
+const fetchUserFields = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("로그인 토큰이 없습니다.");
+      return;
     }
 
-    axios({
-      method: 'put',
-      url: `${userStore.API_URL}/users/${usernameTemp}/info/`,
+    const response = await axios.get(API_URL, {
       headers: {
-        Authorization: `Token ${userStore.token}`
+        Authorization: `Token ${token}`, // 인증 토큰 설정
       },
-      data: {
-        [key.value]: body.value
-      }
-    })
-      .then((res) => {
-        userStore.getUserInfo(usernameTemp)
-        userInfo.value[selectedKey.value] = body.value
-        selectedKey.value = state.value.updateValue = ''
-        selectedMonth.value = null
-        dialog.value = false
-      })
-      .catch((err) => {
-        console.log(err)
-      })
+    });
+    const data = response.data;
+    // 필요한 필드만 저장, 숫자 필드는 정수로 변환
+    userFields.value = {
+      id: data.id,
+      username: data.username,
+      email: data.email,
+      name: data.name,
+      age: data.age,
+      money: data.money ? parseInt(data.money, 10) : null,
+      salary: data.salary ? parseInt(data.salary, 10) : null,
+      desire_amount_deposit: data.desire_amount_deposit ? parseInt(data.desire_amount_deposit, 10) : null,
+      deposit_period: data.deposit_period,
+      desire_amount_saving: data.desire_amount_saving ? parseInt(data.desire_amount_saving, 10) : null,
+      saving_period: data.saving_period,
+    };
+    console.log("사용자 정보:", userFields.value); // 디버깅 로그
+  } catch (error) {
+    console.error("사용자 정보 가져오기 실패:", error.response?.data || error);
+    userFields.value = null; // 실패 시 초기화
   }
-}
+};
 
-const editProfileImg = function (event) {
-  if (isShowProfileInput.value === false) {
-    isShowProfileInput.value = true
-  } else {
-    axios({
-      method: 'put',
-      url: `${userStore.API_URL}/users/${usernameTemp}/profile/`,
-      headers: {
-        Authorization: `Token ${userStore.token}`,
-        "Content-Type": 'multipart/form-data'
-      },
-      data: {
-        'profile_img': image.value
-      }
-    })
-      .then((res) => {
-        userStore.getUserInfo(usernameTemp)
-        isShowProfileInput.value = false
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-  }
-}
+onMounted(() => {
+  fetchUserFields(); // 컴포넌트 마운트 시 사용자 정보 가져오기
+});
 </script>
 
 <template>
   <div>
-    <h1><span class="color">{{ userStore.userInfo.name }}</span>님의 프로필 페이지</h1>
-    <v-divider class="my-3"></v-divider>
+    <h1 v-if="userFields" class="page-title">{{ userFields.name }}님의 프로필 정보</h1>
+    <p v-else class="loading">사용자 정보를 불러오는 중입니다...</p>
 
-    <div v-if="userInfo" class="d-flex align-center justify-space-evenly warpper">
-      <div class="profile-img">
-        <div class="d-flex flex-column justify-center">
-          <v-avatar
-            size="300"
-            class="mb-5"
-          >
-            <v-img cover :src="`${userStore.API_URL}${userStore.userInfo.profile_img}`"></v-img>
-          </v-avatar>
-          <v-btn
-            variant="flat"
-            color="#424530"
-            @click.prevent="editProfileImg"
-          >
-            프로필 이미지 변경
-          </v-btn>
-          <v-file-input
-            v-show="isShowProfileInput"
-            accept="image/png, image/jpeg, image/bmp"
-            variant="underlined"
-            label="프로필 이미지"
-            v-model="image"
-            class="mt-4"
-          >
-          </v-file-input>
-        </div>
-      </div>
+    <div v-if="userFields">
+      <ul class="user-info">
+        <h1>### profile picture 추가 ###</h1>
+        <h1>### 숫자에 comma(,) 추가 ###</h1>
 
-      <div class="user-info">
-        <v-table>
-
-          <v-dialog v-model="dialog" width="400">
-            <v-card>
-              <v-card-title>
-                <span class="mx-2 font-weight-bold">정보 수정</span>
-              </v-card-title>
-
-              <v-card-text>
-                <v-select
-                  v-if="selectedKey === '예금 희망 기간 (월)' || selectedKey === '적금 희망 기간 (월)'"
-                  color="#1089FF"
-                  variant="outlined"
-                  :label="selectedKey"
-                  :items="months"
-                  item-text="title"
-                  item-value="value"
-                  v-model="selectedMonth"
-                ></v-select>
-
-                <v-text-field
-                  v-else
-                  type="number"
-                  color="#1089FF"
-                  variant="outlined"
-                  v-model="state.updateValue"
-                  :label="selectedKey"
-                  :error-messages="v$.updateValue.$errors.map(e => e.$message)"
-                  @input="v$.updateValue.$touch"
-                  @blur="v$.updateValue.$touch"
-                  @keypress.enter="save"
-                ></v-text-field>
-              </v-card-text>
-
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn color="#1089FF" variant="text" @click="close">
-                  취소
-                </v-btn>
-                <v-btn color="#1089FF" variant="text" @click="save">
-                  수정
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-
-          <tbody>
-            <tr
-              v-for="(value, key) in userInfo"
-              :key="key"
-            >
-              <td class="font-weight-bold">{{ key }}</td>
-              <td>{{ value }}</td>
-              <td>
-                <v-icon
-                  v-if="key !== '회원번호' && key !== '아이디' && key !== '닉네임' && key !== '이메일'"
-                  size="small"
-                  class="me-2"
-                  @click="editValue(key, value)"
-                >
-                  mdi-pencil
-                </v-icon>
-              </td>
-            </tr>
-          </tbody>
-        </v-table>
-      </div>
-    </div>
-
-    <div v-else class="loading">
-      <v-progress-circular
-        color="#424530"
-        indeterminate
-        size="80"
-        ></v-progress-circular>
+        <li><strong>유저 ID:</strong> {{ userFields.id }}</li>
+        <li><strong>이메일:</strong> {{ userFields.email }}</li>
+        <li><strong>나이:</strong> {{ userFields.age || "미입력" }}</li>
+        <li><strong>자산:</strong> {{ userFields.money !== null ? `${userFields.money} 원` : "미입력" }}</li>
+        <li><strong>연봉:</strong> {{ userFields.salary !== null ? `${userFields.salary} 원` : "미입력" }}</li>
+        <li><strong>예금 희망 금액:</strong> {{ userFields.desire_amount_deposit !== null ? `${userFields.desire_amount_deposit} 원` : "미입력" }}</li>
+        <li><strong>예금 희망 기간:</strong> {{ userFields.deposit_period ? `${userFields.deposit_period} 개월` : "미입력" }}</li>
+        <li><strong>월 적금 희망 금액:</strong> {{ userFields.desire_amount_saving !== null ? `${userFields.desire_amount_saving} 원` : "미입력" }}</li>
+        <li><strong>적금 희망 기간:</strong> {{ userFields.saving_period ? `${userFields.saving_period} 개월` : "미입력" }}</li>
+      </ul>
     </div>
   </div>
 </template>
 
 <style scoped>
-.warpper {
-  height: 600px;
+.page-title {
+  font-size: 28px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.loading {
+  text-align: center;
+  font-size: 18px;
+  color: #666;
+}
+
+.user-info {
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+  font-size: 18px;
+  line-height: 2;
+  max-width: 800px;
+}
+
+.user-info li {
+  margin-bottom: 10px;
+  color: #444;
+}
+
+.user-info strong {
+  color: #333;
 }
 </style>

@@ -1,8 +1,8 @@
 // src/axios.js
 import axios from 'axios';
 
-// 기본 URL 설정
-const API_URL = 'http://127.0.0.1:8000'; // 백엔드 서버 URL
+// 기본 URL을 .env 파일에서 가져옴
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'; // 기본값 설정
 
 const instance = axios.create({
   baseURL: API_URL,
@@ -14,27 +14,23 @@ const instance = axios.create({
 // 요청 인터셉터
 instance.interceptors.request.use(
   (config) => {
-    // 인증 토큰이 있으면 헤더에 추가
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token'); // 토큰 가져오기
     if (token) {
       config.headers.Authorization = `Token ${token}`;
+      console.log(token)
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // 응답 인터셉터
 instance.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
-    // 에러 처리 로직 추가
     if (error.response?.status === 401) {
       console.error('인증 실패. 다시 로그인하세요.');
+      // 토큰 만료 시 추가 동작 필요 시 여기에 작성
     }
     return Promise.reject(error);
   }

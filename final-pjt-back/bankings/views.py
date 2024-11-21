@@ -1,18 +1,38 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-import requests
+from rest_framework.viewsets import ModelViewSet
 from .serializers import *
 from .models import *
 from finance_recommendation.settings import BANKINGS_KEY
-# 경로만 참조하는거
+import requests
 
-# save_deposit_products requests 모듈을 활용하여 정기예금 상품 목록 데이터를 가져와 정기예금
-# 상품 목록과 옵션 목록을 DB에 저장 GET
+class DepositProductsViewSet(ModelViewSet):
+    queryset = DepositProducts.objects.all()
+    serializer_class = DepositProductsSerializer
+
+
+class DepositOptionsViewSet(ModelViewSet):
+    queryset = DepositOptions.objects.all()
+    serializer_class = DepositOptionsSerializer
+
+
 @api_view(['GET'])
 def save_deposit_products(request):
-    # 예금 url
+    total_saved_base = 0  # 저장된 baseList 데이터 개수
+    total_saved_option = 0  # 저장된 optionList 데이터 개수
+
+    # API URL 구성
+    ## 금융회사개요
+    # url = f'https://finlife.fss.or.kr/finlifeapi/companySearch.json?auth={BANKINGS_KEY}&topFinGrpNo=020000&pageNo=1'
+
+    ## 정기예금상품
     url = f'http://finlife.fss.or.kr/finlifeapi/depositProductsSearch.json?auth={BANKINGS_KEY}&topFinGrpNo=020000&pageNo=1'
+
+    # ## 정기예금상품
+    # url = f'https://finlife.fss.or.kr/finlifeapi/savingProductsSearch.json?auth={BANKINGS_KEY}&topFinGrpNo=020000&pageNo=1'
+
     resp = requests.get(url).json()
+
     baselist = resp.get("result").get("baseList")
     optionlist = resp.get("result").get("optionList")
     for base in baselist:
@@ -51,26 +71,30 @@ def save_deposit_products(request):
     return Response({"message": "okay "})
 
 
-# deposit_products GET: 전체 정기예금 상품 목록 반환
-# POST: 상품 데이터 저장 GET, POST
-@api_view(['GET', 'POST'])
+@api_view(["GET", "POST"])
 def deposit_products(request):
-    if request.method == 'GET':
+    if request.method == "GET":
         deposit_products = DepositProducts.objects.all()
         serializer = DepositProductsSerializer(deposit_products, many=True)
         return Response(serializer.data)
-    
-    elif request.method == 'POST':
+
+    elif request.method == "POST":
         serializer = DepositProductsSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response({'message':'이미 있는 데이터이거나, 데이터가 잘못 입력되었습니다.'})
+            # 중복 여부 확인
+            if not DepositProducts.objects.filter(fin_prdt_cd=request.data.get("fin_prdt_cd")).exists():
+                serializer.save()
+                return Response(serializer.data)
+            return Response({"message": "이미 존재하는 데이터입니다."}, status=400)
+        return Response({"message": "잘못된 데이터입니다."}, status=400)
 
 
-# deposit_product_options 특정 상품의 옵션 리스트 반환 GET
-@api_view(['GET'])
+@api_view(["GET"])
 def deposit_product_options(request, fin_prdt_cd):
-    depositoptions = DepositOptions.objects.filter(fin_prdt_cd=fin_prdt_cd)
+    deposit_product = DepositProducts.objects.filter(fin_prdt_cd=fin_prdt_cd).first()
+    if not deposit_product:
+        return Response({"message": "해당 상품이 존재하지 않습니다."}, status=404)
+
+    depositoptions = DepositOptions.objects.filter(product=deposit_product)
     serializer = DepositOptionsSerializer(depositoptions, many=True)
     return Response(serializer.data)
