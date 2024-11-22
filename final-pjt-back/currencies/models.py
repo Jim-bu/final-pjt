@@ -1,6 +1,6 @@
 from django.db import models
 
-class Exchange(models.Model):
+class ExchangeList(models.Model):
     cur_unit = models.CharField(max_length=100)  ## 통화 단위 (예: AED, USD 등)
     ttb = models.CharField(max_length=100)  ## 전신환(송금) 받으실 때
     tts = models.CharField(max_length=100)  ## 전신환(송금) 보내실 때
