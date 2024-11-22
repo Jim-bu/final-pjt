@@ -96,7 +96,10 @@ const router = createRouter({
       path: "/productcompare",
       name: "productcompare",
       component: ProductCompareView
-    }
+    },
+      // 나중에 추가할 환율 정보, 뉴스 페이지
+  // { path: '/exchange', name: 'Exchange', component: () => import('@/views/ExchangeView.vue') },
+  // { path: '/news', name: 'News', component: () => import('@/views/NewsView.vue') },
   ]
 });
 

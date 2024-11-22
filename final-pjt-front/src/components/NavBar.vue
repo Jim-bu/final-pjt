@@ -31,45 +31,86 @@
 
     <!-- 하단 네비게이션 -->
     <div class="bottom-navbar">
-      <button class="bottom-btn" @click="goToPage('list')">목록</button>
+      <button class="bottom-btn" @click="toggleModal">
+        <svg xmlns="http://www.w3.org/2000/svg" height="40px" viewBox="0 0 24 24" width="40px" fill="#5f6368"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>      </button>
       <div class="chatbot-button-container">
         <button class="chatbot-button" @click="toggleChatbot">
           <v-icon>mdi-robot</v-icon>
         </button>
       </div>
-      <button class="bottom-btn" @click="goBack">뒤로가기</button>
+      <button class="bottom-btn" @click="goBack">
+      <v-icon>mdi-arrow-left</v-icon>
+    </button>
+<!-- 모달창 -->
+<div
+      v-if="isModalOpen"
+      class="modal-overlay"
+      @click="closeModalOnOutsideClick"
+    >
+      <div class="modal-content">
+        <h3>목록</h3>
+        <div class="menu-section">
+          <h4>My-</h4>
+          <ul>
+            <li><button @click="goToPage('')">설문조사 하러 가기</button></li>
+            <li><button @click="goToPage('bank-map')">근처 은행 찾기</button></li>
+          </ul>
+        </div>
+        <div class="menu-section">
+          <h4>금융정보</h4>
+          <ul>
+            <li><button @click="goToPage('exchange')">환율 정보 확인하기</button></li>
+            <li><button @click="goToPage('news')">뉴스 페이지</button></li>
+          </ul>
+        </div>
+        <div class="menu-section">
+          <h4>금융상품</h4>
+          <ul>
+            <li><button @click="goToPage('product-list')">상품 목록 확인하기</button></li>
+            <li><button @click="goToPage('recommendation')">상품 추천 받기</button></li>
+          </ul>
+        </div>
+        <button class="close-button" @click="toggleModal">닫기</button>
+      </div>
+      </div>
     </div>
   </div>
 </template>
 
 
-<script>
-import { computed } from 'vue';
+<script setup>
+import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/users';
 
-export default {
-  name: "Navbar",
-  setup() {
-    const userStore = useUserStore();
+const userStore = useUserStore();
+const router = useRouter();
 
-    const isLoggedIn = computed(() => userStore.isLogin);
+const isLoggedIn = computed(() => userStore.isLogin);
 
-    const logout = () => {
-      userStore.logOut();
-    };
-
-    const goToPage = (page) => {
-      // 페이지 이동
-      window.location.href = `/${page}`;
-    };
-
-    return {
-      isLoggedIn,
-      logout,
-      goToPage,
-    };
-  },
+const logout = () => {
+  userStore.logOut();
 };
+
+const goToPage = (page) => {
+  // 페이지 이동
+  router.push(`/${page}`);
+};
+
+// 모달 상태 관리
+const isModalOpen = ref(false);
+
+const toggleModal = () => {
+  isModalOpen.value = !isModalOpen.value;
+};
+
+// 모달 외부 클릭으로 닫기
+const closeModalOnOutsideClick = (event) => {
+  if (event.target.classList.contains('modal-overlay')) {
+    isModalOpen.value = false;
+  }
+};
+
 </script>
 
 <style scoped>
@@ -141,7 +182,7 @@ export default {
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 100%;
+  width: 60%;
   max-width: 600px;
   background-color: #f2f2f2;
   display: flex;
