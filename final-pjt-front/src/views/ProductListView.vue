@@ -1,24 +1,56 @@
 <template>
   <div class="product-list-container">
+    <!-- 탭 구성 -->
+    <div class="tabs">
+      <button
+        class="tab"
+        :class="{ active: activeTab === 'deposit' }"
+        @click="activeTab = 'deposit'"
+      >
+        예금
+      </button>
+      <button
+        class="tab"
+        :class="{ active: activeTab === 'saving' }"
+        @click="activeTab = 'saving'"
+      >
+        적금
+      </button>
+    </div>
+
     <!-- 상품 목록 -->
-    <div
-      v-for="product in products"
-      :key="product.fin_prdt_cd"
-      class="product-card"
-      @click="showDetail(product)"
-    >
-      <div class="product-header">
-        <span class="product-type">
-          상품 형태: {{ product.join_way?.includes("예금") ? "예금" : "적금" }}
-        </span>
+    <div>
+      <div
+        v-for="product in paginatedProducts"
+        :key="product.fin_prdt_cd"
+        class="product-card"
+        @click="showDetail(product)"
+      >
+        <div class="product-header">
+          <span class="product-type">
+            상품 형태: {{ activeTab === 'deposit' ? "예금" : "적금" }}
+          </span>
+        </div>
+        <div class="product-body">
+          <h3 class="product-name">{{ product.fin_prdt_nm }}</h3>
+          <p class="product-period">
+            가입기간: {{ extractJoinPeriod(product.etc_note) }}
+          </p>
+        </div>
+        <button class="detail-button">상세 보기</button>
       </div>
-      <div class="product-body">
-        <h3 class="product-name">{{ product.fin_prdt_nm }}</h3>
-        <p class="product-period">
-          가입기간: {{ extractJoinPeriod(product.etc_note) }}
-        </p>
-      </div>
-      <button class="detail-button">상세 보기</button>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <div class="pagination">
+      <button
+        v-for="page in totalPages"
+        :key="page"
+        :class="{ active: currentPage === page }"
+        @click="currentPage = page"
+      >
+        {{ page }}
+      </button>
     </div>
 
     <!-- 상세 페이지 팝업 -->
@@ -37,38 +69,60 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useProductStore } from "../stores/product";
 
 const productStore = useProductStore();
-const products = ref([])
 
-// 컴포넌트 마운트 시 데이터 저장 및 가져오기
-onMounted(() => {
-  productStore.saveProducts(); // 데이터 저장
-  productStore.fetchProducts(); // 저장된 데이터 조회
+// 데이터 로드
+onMounted(async () => {
+  await productStore.saveDeposits();
+  await productStore.saveSavings();
+  await productStore.fetchDeposits();
+  await productStore.fetchSavings();
 });
 
-products.value = productStore.fetchProducts(); // 전체 상품 데이터 참조
-const selectedProduct = productStore.fetchProductById(); // 선택된 상품 데이터 참조
 
-// 가입기간 추출 유틸리티 함수
-const extractJoinPeriod = (note) => {
-  const match = note.match(/가입기간: (.+?)\n/);
-  return match ? match[1] : "정보 없음";
-};
 
-// 상품 상세 보기
+// 탭 상태
+const activeTab = ref("deposit");
+
+// 페이지네이션 상태
+const currentPage = ref(1);
+const itemsPerPage = 10; // 페이지당 항목 수
+
+// 상품 목록
+const products = computed(() =>
+  activeTab.value === "deposit"
+    ? productStore.deposits
+    : productStore.savings
+);
+
+// 페이지네이션 처리
+const totalPages = computed(() => Math.ceil(products.value.length / itemsPerPage));
+const paginatedProducts = computed(() =>
+  products.value.slice(
+    (currentPage.value - 1) * itemsPerPage,
+    currentPage.value * itemsPerPage
+  )
+);
+
+// 상세 보기
+const selectedProduct = ref(null);
 const showDetail = (product) => {
-  productStore.fetchProductById(product.fin_prdt_cd); // 선택된 상품 데이터 로드
+  selectedProduct.value = product;
 };
 
 // 팝업 닫기
 const closeDetail = () => {
-  productStore.selectedProduct = null; // 선택된 상품 초기화
+  selectedProduct.value = null;
 };
 
-
+// 가입기간 추출 유틸리티 함수
+const extractJoinPeriod = (note) => {
+  const match = note?.match(/가입기간: (.+?)\n/);
+  return match ? match[1] : "정보 없음";
+};
 </script>
 
 <style scoped>
@@ -117,6 +171,46 @@ const closeDetail = () => {
   background-color: #2a3620;
 }
 
+/* 탭 스타일 */
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.tab {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  background-color: #f2f2f2;
+  margin: 0 5px;
+  border-radius: 8px;
+}
+.tab.active {
+  background-color: #424530;
+  color: #ffefcd;
+}
+
+/* 페이지네이션 스타일 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+.pagination button {
+  padding: 8px 12px;
+  margin: 0 4px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #f2f2f2;
+}
+.pagination button.active {
+  background-color: #424530;
+  color: #ffefcd;
+}
+
+/* 팝업 스타일 */
 .popup-overlay {
   position: fixed;
   top: 0;
@@ -129,7 +223,6 @@ const closeDetail = () => {
   align-items: center;
   z-index: 1000;
 }
-
 .popup-content {
   background-color: #fff;
   padding: 24px;

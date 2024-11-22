@@ -27,7 +27,7 @@ export const useUserStore = defineStore(
       if (!token.value) return; // 토큰 없으면 요청하지 않음
       axios({
         method: 'get',
-        url: `${API_URL}/users/info/`,
+        url: `${API_URL}/accounts/user_info`,
         headers: {
           Authorization: `Token ${token.value}`,
         },

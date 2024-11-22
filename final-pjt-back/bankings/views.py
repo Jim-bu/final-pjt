@@ -1,15 +1,18 @@
 import requests
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from finance_recommendation.settings import BANKINGS_KEY
 from .models import DepositBaseList, DepositOptionList, SavingBaseList, SavingOptionList
 from .serializers import DepositBaseListSerializer, SavingBaseListSerializer
+from rest_framework.permissions import AllowAny
+
 
 API_URL_deposit = f"https://finlife.fss.or.kr/finlifeapi/depositProductsSearch.json?auth={BANKINGS_KEY}&topFinGrpNo=020000&pageNo=1"
 API_URL_saving = f"https://finlife.fss.or.kr/finlifeapi/savingProductsSearch.json?auth={BANKINGS_KEY}&topFinGrpNo=020000&pageNo=1"
 
 ## 예금
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def deposit_fetch_data(request):
     # Fetch data from the API
     response = requests.get(API_URL_deposit)
@@ -62,6 +65,7 @@ def deposit_fetch_data(request):
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def deposit_get_products(request):
     products = DepositBaseList.objects.all()
     serializer = DepositBaseListSerializer(products, many=True)
@@ -70,6 +74,7 @@ def deposit_get_products(request):
 
 ## 적금
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def saving_fetch_data(request):
     # Fetch data from the API
     response = requests.get(API_URL_saving)
@@ -122,6 +127,7 @@ def saving_fetch_data(request):
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def saving_get_products(request):
     products = SavingBaseList.objects.all()
     serializer = SavingBaseListSerializer(products, many=True)
