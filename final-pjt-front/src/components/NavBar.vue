@@ -11,23 +11,18 @@
           <span class="action-link" @click="goToPage('login')">로그인</span>
           <span class="action-link" @click="goToPage('signup')">회원가입</span>
         </template>
-        <RouterLink to="/mypage" exact-active-class="active">
-          <v-icon>mdi-account</v-icon>
+        <RouterLink
+          to="/mypage"
+          exact-active-class="active"
+          class="custom-link"
+        >
+          <v-icon class="custom-icon">mdi-account</v-icon>
         </RouterLink>
       </div>
     </div>
 
-    <!-- 두 번째 줄 -->
-    <div class="navbar-search">
-      <input
-        type="text"
-        placeholder=" 검색어를 입력하세요..."
-        class="search-input"
-      />
-    </div>
-
     <!-- 세 번째 줄 (Sticky) -->
-    <div class="navbar-bottom sticky">
+    <div class="navbar-bottom">
       <button class="nav-btn" @click="goToPage('productList')">상품목록</button>
       <button class="nav-btn" @click="goToPage('productcompare')">상품비교</button>
       <button class="nav-btn" @click="goToPage('recommendation')">상품추천</button>
@@ -83,9 +78,9 @@ export default {
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
-  background-color: #000;
+  background-color: #85725d;
   color: #fff;
-  position: relative;
+  /* position: relative; */
   z-index: 1000;
 }
 
@@ -95,7 +90,9 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 10px 20px;
-  border-bottom: 1px solid #444;
+  background-color: #85725d; /* 변경된 배경색 */
+  color: #faf7f2; /* 변경된 글씨색 */
+  border-bottom: 1px solid #756451;
 }
 
 .navbar-logo {
@@ -110,26 +107,9 @@ export default {
 }
 
 .action-link {
-  color: #fff;
+  color: #faf7f2;
   cursor: pointer;
   text-decoration: underline;
-}
-
-/* 두 번째 줄 */
-.navbar-search {
-  padding: 10px 20px;
-  border-bottom: 1px solid #444;
-}
-
-.search-input {
-  width: 100%;
-  padding: 8px;
-  font-size: 14px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: #fff;
-  color: #000;
-  outline: none;
 }
 
 /* 세 번째 줄 (Sticky) */
@@ -138,15 +118,21 @@ export default {
   justify-content: space-around;
   align-items: center;
   padding: 10px 0;
-  background-color: #000;
-  border-top: 1px solid #444;
-}
-
-.sticky {
+  background-color: #85725d; /* 변경된 배경색 */
+  color: #faf7f2;
+  border-top: 1px solid #756451;
   position: sticky;
   top: 0;
   z-index: 1001;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.custom-link {
+  text-decoration: none; /* 링크 기본 스타일 제거 */
+}
+
+.custom-icon {
+  color: #ffffff; /* 원하는 색상 적용 */
+  font-size: 24px; /* 아이콘 크기 조정 가능 */
 }
 
 /* 하단 네비게이션 */
