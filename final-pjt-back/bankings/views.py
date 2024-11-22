@@ -12,7 +12,6 @@ API_URL_saving = f"https://finlife.fss.or.kr/finlifeapi/savingProductsSearch.jso
 
 ## 예금
 @api_view(['GET'])
-@permission_classes([AllowAny])
 def deposit_fetch_data(request):
     # Fetch data from the API
     response = requests.get(API_URL_deposit)
@@ -65,7 +64,6 @@ def deposit_fetch_data(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
 def deposit_get_products(request):
     products = DepositBaseList.objects.all()
     serializer = DepositBaseListSerializer(products, many=True)
@@ -74,7 +72,6 @@ def deposit_get_products(request):
 
 ## 적금
 @api_view(['GET'])
-@permission_classes([AllowAny])
 def saving_fetch_data(request):
     # Fetch data from the API
     response = requests.get(API_URL_saving)
@@ -127,7 +124,6 @@ def saving_fetch_data(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
 def saving_get_products(request):
     products = SavingBaseList.objects.all()
     serializer = SavingBaseListSerializer(products, many=True)

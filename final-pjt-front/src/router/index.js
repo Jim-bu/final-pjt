@@ -14,6 +14,7 @@ import ProductCompareView from '@/views/ProductCompareView.vue';
 import PopupMenu from '@/components/PopupMenu.vue';
 import ExchangeView from '@/views/ExchangeView.vue';
 import NewsView from '@/views/NewsView.vue';
+import CommunityView from '@/views/CommunityView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -59,7 +60,7 @@ const router = createRouter({
     {
       path: "/nearBank",
       name: "nearBank",
-      component: () => import("@/views/BankMapView.vue"),
+      component: BankMapView,
     },
     {
       path: '/mypage/:username*',
@@ -106,13 +107,20 @@ const router = createRouter({
       component: PopupMenu 
     },
   { 
-    path: '/exchange', name: 'Exchange',
-    component: () => import('@/views/ExchangeView.vue')
+    path: '/exchangeRates',
+    name: 'Exchange',
+    component: ExchangeView,
   },
   { 
     path: '/news',
     name: 'News',
-    component: () => import('@/views/NewsView.vue') },
+    component: NewsView,
+  },
+  {
+    path: '/community',
+    name: 'Community',
+    component: CommunityView,
+  },
   ]
 });
 
