@@ -9,7 +9,7 @@
     >
       <div class="product-header">
         <span class="product-type">
-          상품 형태: {{ product.join_way.includes("예금") ? "예금" : "적금" }}
+          상품 형태: {{ product.join_way?.includes("예금") ? "예금" : "적금" }}
         </span>
       </div>
       <div class="product-body">
@@ -37,12 +37,20 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useProductStore } from "../stores/product";
 
 const productStore = useProductStore();
-const products = productStore.products; // Pinia 스토어의 상품 데이터 참조
-const selectedProduct = ref(null); // 선택된 상품 저장
+const products = ref([])
+
+// 컴포넌트 마운트 시 데이터 저장 및 가져오기
+onMounted(() => {
+  productStore.saveProducts(); // 데이터 저장
+  productStore.fetchProducts(); // 저장된 데이터 조회
+});
+
+products.value = productStore.fetchProducts(); // 전체 상품 데이터 참조
+const selectedProduct = productStore.fetchProductById(); // 선택된 상품 데이터 참조
 
 // 가입기간 추출 유틸리티 함수
 const extractJoinPeriod = (note) => {
@@ -52,18 +60,15 @@ const extractJoinPeriod = (note) => {
 
 // 상품 상세 보기
 const showDetail = (product) => {
-  selectedProduct.value = product;
+  productStore.fetchProductById(product.fin_prdt_cd); // 선택된 상품 데이터 로드
 };
 
 // 팝업 닫기
 const closeDetail = () => {
-  selectedProduct.value = null;
+  productStore.selectedProduct = null; // 선택된 상품 초기화
 };
 
-// 컴포넌트 마운트 시 데이터 가져오기
-onMounted(() => {
-  productStore.fetchProducts(); // Pinia 스토어에서 상품 데이터 가져오기
-});
+
 </script>
 
 <style scoped>
