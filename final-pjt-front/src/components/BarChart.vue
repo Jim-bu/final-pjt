@@ -1,46 +1,61 @@
 <template>
-  <div>
-    <canvas id="bar-chart"></canvas>
+  <div class="chart-container">
+    <canvas ref="barChartCanvas"></canvas>
   </div>
 </template>
 
 <script setup>
-import { onMounted, watch, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import Chart from "chart.js/auto";
 
 const props = defineProps({
-  chartData: {
+  labels: {
+    type: Array,
+    required: true,
+  },
+  datasets: {
     type: Array,
     required: true,
   },
 });
 
-const chartInstance = ref(null);
+const barChartCanvas = ref(null);
+let chartInstance = null;
 
 const renderChart = () => {
-  const ctx = document.getElementById("bar-chart").getContext("2d");
-
-  if (chartInstance.value) {
-    chartInstance.value.destroy(); // 기존 차트 제거
+  if (chartInstance) {
+    chartInstance.destroy();
   }
 
-  const datasets = props.chartData.map((data, index) => ({
-    label: data.name,
-    data: data.returns,
-    backgroundColor: `rgba(${(index + 1) * 50}, 100, 150, 0.7)`,
-  }));
+  if (!props.labels.length || !props.datasets.length) {
+    console.warn("차트 데이터가 부족합니다.");
+    return;
+  }
 
-  chartInstance.value = new Chart(ctx, {
+  chartInstance = new Chart(barChartCanvas.value.getContext("2d"), {
     type: "bar",
     data: {
-      labels: props.chartData[0]?.labels || [],
-      datasets,
+      labels: props.labels,
+      datasets: props.datasets.map((dataset, index) => ({
+        label: dataset.label,
+        data: dataset.data,
+        backgroundColor: `rgba(${(index + 1) * 60}, 99, 132, 0.7)`,
+      })),
     },
     options: {
       responsive: true,
       plugins: {
         legend: {
           display: true,
+          position: "top",
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: (value) => `${value.toLocaleString()}원`,
+          },
         },
       },
     },
@@ -48,12 +63,16 @@ const renderChart = () => {
 };
 
 onMounted(renderChart);
-watch(() => props.chartData, renderChart);
+watch([() => props.labels, () => props.datasets], renderChart);
 </script>
 
 <style scoped>
-canvas {
-  max-width: 100%;
-  height: auto;
+.chart-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f8f3eb;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 </style>

@@ -2,187 +2,277 @@
   <div class="compare-page">
     <h1>상품 비교</h1>
 
+    <!-- 검색 필드 -->
+    <div class="search-container">
+      <input
+        v-model="searchTerm"
+        class="search-input"
+        type="text"
+        placeholder="상품명을 검색하세요..."
+      />
+    </div>
+
+    <!-- 상품 탭 -->
+    <div class="product-tab">
+      <button
+        :class="{ active: activeTab === 'deposit' }"
+        @click="changeTab('deposit')"
+      >
+        예금
+      </button>
+      <button
+        :class="{ active: activeTab === 'saving' }"
+        @click="changeTab('saving')"
+      >
+        적금
+      </button>
+    </div>
+
     <!-- 상품 목록 -->
     <div class="product-list">
-      <h2>상품 목록</h2>
       <div
-        v-for="product in products"
+        v-for="product in filteredProducts"
         :key="product.fin_prdt_cd"
         class="product-card"
+        @click="toggleSelection(product)"
+        :class="{ selected: selectedProducts.includes(product) }"
       >
-        <input
-          type="checkbox"
-          :value="product"
-          v-model="selectedProducts"
-        />
         <span>{{ product.fin_prdt_nm }}</span>
       </div>
     </div>
 
-    <!-- 선택한 상품 비교 버튼 -->
+    <!-- 페이지네이션 -->
+    <div class="pagination">
+      <button :disabled="currentPage === 1" @click="prevPage">이전</button>
+      <span>페이지 {{ currentPage }} / {{ totalPages }}</span>
+      <button :disabled="currentPage === totalPages" @click="nextPage">다음</button>
+    </div>
+
+    <!-- 비교 버튼 -->
     <button
       class="compare-button"
       :disabled="selectedProducts.length < 2"
-      @click="compareProducts"
+      @click="showChart"
     >
       선택 상품 비교
     </button>
 
     <!-- 차트 -->
-    <div v-if="chartData.length" class="chart-container">
-      <BarChart :chart-data="chartData" />
-    </div>
-
-    <!-- 게시판 -->
-    <div class="board">
-      <h2>상품 의견 게시판</h2>
-      <form @submit.prevent="addPost">
-        <textarea
-          v-model="newPost"
-          placeholder="여기에 의견을 작성하세요..."
-        ></textarea>
-        <button type="submit">게시</button>
-      </form>
-      <ul class="posts">
-        <li v-for="(post, index) in posts" :key="index">
-          <p>{{ post }}</p>
-          <!-- 댓글 -->
-          <div class="comments">
-            <form @submit.prevent="addComment(index)">
-              <input
-                v-model="newComments[index]"
-                placeholder="댓글을 작성하세요..."
-              />
-              <button type="submit">댓글 추가</button>
-            </form>
-            <ul>
-              <li v-for="(comment, idx) in comments[index] || []" :key="idx">
-                {{ comment }}
-              </li>
-            </ul>
-          </div>
-        </li>
-      </ul>
-    </div>
+    <BarChart
+      v-if="showingChart && labels.length && datasets.length"
+      :labels="labels"
+      :datasets="datasets"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import axios from 'axios';
+import { ref, computed, onMounted } from "vue";
+import { useProductStore } from "../stores/product";
 import BarChart from "@/components/BarChart.vue";
 
-// 상품 데이터
-const products = ref([]); // 백엔드에서 가져올 상품 목록
-const selectedProducts = ref([]); // 선택된 상품
-const chartData = ref([]); // 차트 데이터
+// Store 및 데이터 선언
+const productStore = useProductStore();
+const deposits = ref([]);
+const savings = ref([]);
+const selectedProducts = ref([]);
+const searchTerm = ref("");
+const activeTab = ref("deposit");
+const showingChart = ref(false);
+const labels = ref([]);
+const datasets = ref([]);
 
-// 수익 계산 로직
-const calculateReturns = (product) => {
-  const periods = product.mtrt_int.match(/- (.+?): (.+?)%/g) || [];
-  return periods.map((period) => {
-    const [label, percentage] = period.match(/(.+?): (.+?)%/).slice(1);
-    const returnAmount = (parseFloat(percentage) / 100) * 1000000; // 가상의 기준 금액 1,000,000원
-    return { label, value: returnAmount };
-  });
+// 페이지네이션
+const currentPage = ref(1);
+const itemsPerPage = 5; // 한 페이지에 표시할 상품 수
+
+// 현재 탭의 상품 목록
+const filteredProducts = computed(() => {
+  const products =
+    activeTab.value === "deposit" ? deposits.value : savings.value;
+
+  const searchFiltered = products.filter((product) =>
+    product.fin_prdt_nm.includes(searchTerm.value)
+  );
+
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  return searchFiltered.slice(start, end);
+});
+
+// 총 페이지 수
+const totalPages = computed(() => {
+  const products =
+    activeTab.value === "deposit" ? deposits.value : savings.value;
+
+  const searchFiltered = products.filter((product) =>
+    product.fin_prdt_nm.includes(searchTerm.value)
+  );
+
+  return Math.ceil(searchFiltered.length / itemsPerPage);
+});
+
+// 페이지 이동
+const prevPage = () => {
+  if (currentPage.value > 1) currentPage.value--;
 };
 
-// 상품 비교
-const compareProducts = () => {
-  chartData.value = selectedProducts.value.map((product) => {
-    const returns = calculateReturns(product);
-    return {
-      name: product.fin_prdt_nm,
-      returns: returns.map((r) => r.value),
-      labels: returns.map((r) => r.label),
-    };
-  });
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) currentPage.value++;
 };
 
-// 게시판 데이터
-const posts = ref([]); // 게시글
-const newPost = ref(""); // 새 게시글
-const comments = ref([]); // 댓글 데이터
-const newComments = ref({}); // 새 댓글
+// 탭 변경
+const changeTab = (tab) => {
+  activeTab.value = tab;
+  currentPage.value = 1; // 페이지 초기화
+};
 
-// 게시글 추가
-const addPost = () => {
-  if (newPost.value.trim()) {
-    posts.value.push(newPost.value.trim());
-    newPost.value = "";
-    comments.value.push([]); // 댓글 초기화
+// 상품 선택 토글
+const toggleSelection = (product) => {
+  const index = selectedProducts.value.indexOf(product);
+  if (index === -1) {
+    selectedProducts.value.push(product);
+  } else {
+    selectedProducts.value.splice(index, 1);
   }
 };
 
-// 댓글 추가
-const addComment = (postIndex) => {
-  if (!newComments.value[postIndex]?.trim()) return;
-
-  if (!comments.value[postIndex]) {
-    comments.value[postIndex] = [];
+// 차트 데이터 생성
+const prepareChartData = () => {
+  if (!selectedProducts.value.length) {
+    console.warn("선택된 상품이 없습니다.");
+    return;
   }
 
-  comments.value[postIndex].push(newComments.value[postIndex]);
-  newComments.value[postIndex] = "";
-};
+  // 선택된 상품의 데이터 유효성 확인 및 필터링
+  const validProducts = selectedProducts.value.filter(
+    (product) => product.options && product.options.length
+  );
 
-// 데이터 가져오기
-const fetchProducts = async () => {
-  try {
-    const response = await axios.get("/api/products/");
-    products.value = response.data;
-  } catch (error) {
-    console.error("상품 데이터를 가져오는 중 오류 발생:", error);
-    // 더미 데이터로 대체
-    products.value = [
-      {
-        fin_prdt_cd: "PRD001",
-        fin_prdt_nm: "WON플러스예금",
-        mtrt_int: "만기 후\n- 1개월이내: 50%\n- 1개월초과 6개월이내: 30%\n- 6개월초과: 20%",
-      },
-      {
-        fin_prdt_cd: "PRD002",
-        fin_prdt_nm: "SMART 적금",
-        mtrt_int: "만기 후\n- 6개월이내: 70%\n- 6개월초과 12개월이내: 50%",
-      },
-      {
-        fin_prdt_cd: "PRD003",
-        fin_prdt_nm: "GOLD 정기예금",
-        mtrt_int: "만기 후\n- 12개월: 100%",
-      },
-    ];
+  if (!validProducts.length) {
+    console.warn("유효한 상품 데이터가 없습니다.");
+    labels.value = [];
+    datasets.value = [];
+    return;
   }
+
+  // 차트 라벨 생성
+  labels.value = validProducts[0].options.map((option) => `${option.save_trm}개월`);
+
+  // 데이터셋 생성
+  datasets.value = validProducts.map((product, index) => ({
+    label: product.fin_prdt_nm,
+    data: product.options.map((option) => {
+      const term = parseInt(option.save_trm, 10);
+      const rate = option.intr_rate2 || option.intr_rate || 0;
+      const returns =
+        activeTab.value === "deposit"
+          ? 1000000 * (1 + (rate / 100) * (term / 12)) // 예금 계산
+          : 1000000 * (Math.pow(1 + rate / 1200, term) - 1); // 적금 계산
+      return Math.round(returns);
+    }),
+    backgroundColor: `rgba(${index * 60}, 99, 132, 0.7)`,
+  }));
 };
 
-onMounted(() => {
-  fetchProducts();
+
+// 차트 표시
+const showChart = () => {
+  prepareChartData();
+  showingChart.value = true;
+};
+
+// 데이터 로드
+onMounted(async () => {
+  await productStore.saveDeposits();
+  await productStore.saveSavings();
+  await productStore.fetchDeposits();
+  await productStore.fetchSavings();
+  deposits.value = productStore.deposits;
+  savings.value = productStore.savings;
 });
 </script>
 
 <style scoped>
 .compare-page {
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 16px;
 }
 
+/* 상품 목록 탭 스타일 */
+.product-tab {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.product-tab button {
+  background-color: #f8e5c3;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  margin: 0 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.product-tab button.active {
+  background-color: #e4c089;
+}
+
+.product-tab button:hover {
+  background-color: #e4c089;
+}
+
+/* 상품 목록 */
 .product-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  margin-bottom: 16px;
 }
 
 .product-card {
-  background-color: #d4a373;
+  background-color: #f8ecd5;
   border-radius: 12px;
   padding: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.product-card.selected {
+  background-color: #e4c089;
+}
+
+.product-card:hover {
+  background-color: #f4d4a5;
+}
+
+/* 페이지네이션 */
+.pagination {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  margin: 16px 0;
+}
+
+.pagination button {
+  background-color: #b57230;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
   cursor: pointer;
 }
 
+.pagination button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* 비교 버튼 */
 .compare-button {
   width: 100%;
   padding: 10px;
@@ -191,123 +281,11 @@ onMounted(() => {
   border: none;
   border-radius: 12px;
   cursor: pointer;
+  margin-top: 16px;
 }
 
 .compare-button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
-
-.chart-container {
-  margin: 20px 0;
-}
-
-.board {
-  margin-top: 20px;
-  padding: 16px;
-  border-top: 2px solid #333; /* 구분선 추가 */
-}
-
-.board h2 {
-  font-size: 20px;
-  font-weight: bold;
-  color: #333; /* 검은색 텍스트 */
-  margin-bottom: 16px;
-  border-bottom: 2px solid #333; /* 제목 구분선 */
-  padding-bottom: 8px;
-}
-
-textarea {
-  width: 100%;
-  padding: 10px;
-  font-size: 14px;
-  margin-bottom: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  resize: none;
-  background-color: #f9f9f9; /* 연한 회색 배경 */
-}
-
-button {
-  padding: 10px 16px;
-  font-size: 14px;
-  color: #fff;
-  background-color: #333; /* 검은색 버튼 */
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-button:hover {
-  background-color: #555; /* 버튼 hover 효과 */
-}
-
-.posts {
-  margin-top: 16px;
-}
-
-.posts li {
-  padding: 16px;
-  border: 1px solid #ddd; /* 구분선 */
-  border-radius: 8px;
-  margin-bottom: 16px;
-  background-color: #fdfdfd; /* 밝은 배경 */
-}
-
-.posts li p {
-  font-size: 14px;
-  color: #333; /* 검은 텍스트 */
-  margin-bottom: 8px;
-}
-
-.comments {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #ccc; /* 댓글 구분선 */
-}
-
-.comments form {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.comments form input {
-  flex: 1;
-  padding: 8px;
-  font-size: 14px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-}
-
-.comments form button {
-  padding: 8px 12px;
-  font-size: 14px;
-  color: #fff;
-  background-color: #333;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.comments form button:hover {
-  background-color: #555;
-}
-
-.comments ul {
-  margin-top: 8px;
-}
-
-.comments ul li {
-  font-size: 14px;
-  color: #333;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-  margin-bottom: 8px;
-}
-
-
 </style>

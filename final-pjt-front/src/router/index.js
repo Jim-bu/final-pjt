@@ -12,6 +12,8 @@ import MyPage from '@/components/MyPage.vue';
 import ProductListView from '@/views/ProductListView.vue';
 import ProductCompareView from '@/views/ProductCompareView.vue';
 import PopupMenu from '@/components/PopupMenu.vue';
+import ExchangeView from '@/views/ExchangeView.vue';
+import NewsView from '@/views/NewsView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -103,9 +105,14 @@ const router = createRouter({
       name: 'PopupMenu',
       component: PopupMenu 
     },
-      // 나중에 추가할 환율 정보, 뉴스 페이지
-  // { path: '/exchange', name: 'Exchange', component: () => import('@/views/ExchangeView.vue') },
-  // { path: '/news', name: 'News', component: () => import('@/views/NewsView.vue') },
+  { 
+    path: '/exchange', name: 'Exchange',
+    component: () => import('@/views/ExchangeView.vue')
+  },
+  { 
+    path: '/news',
+    name: 'News',
+    component: () => import('@/views/NewsView.vue') },
   ]
 });
 
