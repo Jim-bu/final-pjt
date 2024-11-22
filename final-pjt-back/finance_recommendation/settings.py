@@ -19,6 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(DEBUG=(bool, False))
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -31,14 +32,12 @@ BANKINGS_KEY = 'fd89ce1528e7ff78f03859c34dd17c0e'
 # 한국수출입은행 API
 CURRENCIES_KEY = 'GO74rCNUkQZb0D4TUlE5OsyNr5eiS78e'
 
-# # # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = env('DJANGO')
+# 공공데이터포털 API
+STOCKS_KEY = 'napUJp%2BaSVtsZIjCXy8YJhjxR%2Fckk3WKMhL0sF7tliHtVy%2FuOUjz4P3UTe5Vl61Pr7TR8wli4UxpwWwykMpU%2BA%3D%3D'
 
-# # # 금융감독원 API
-# BANKINGS_KEY = env('BANKINGS')
-
-# # # 한국수출입은행 API
-# CURRENCIES_KEY = env('CURRENCIES')
+# 네이버 검색 API 키
+NAVER_CLIENT_ID = 'Www2nwUTz3LsUOuKExyf'
+NAVER_CLIENT_SECRET = 'aKTPHptBFv'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -54,6 +53,8 @@ INSTALLED_APPS = [
     'bankings',
     'currencies',
     'surveys',
+    'stocks',
+    'economics',
     'rest_framework',
     'rest_framework.authtoken',
     'dj_rest_auth',

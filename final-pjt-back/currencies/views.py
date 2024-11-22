@@ -1,8 +1,8 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from finance_recommendation.settings import CURRENCIES_KEY
-from .models import Exchange
-from .serializers import ExchangeSerializer
+from .models import ExchangeList
+from .serializers import ExchangeListSerializer
 import requests
 
 API_URL = f'https://www.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey={CURRENCIES_KEY}&data=AP01'
@@ -26,7 +26,7 @@ def exchange_fetch_data(request):
             'cur_nm': item.get('cur_nm', ''),  # 통화명
         }
 
-        Exchange.objects.update_or_create(
+        ExchangeList.objects.update_or_create(
             cur_unit=item.get('cur_unit', ''),  # 통화 단위로 고유값 결정
             defaults=defaults
         )
@@ -35,6 +35,6 @@ def exchange_fetch_data(request):
 
 @api_view(['GET'])
 def exchange_get_data(request):
-    exchanges = Exchange.objects.all()
-    serializer = ExchangeSerializer(exchanges, many=True)
+    exchanges = ExchangeList.objects.all()
+    serializer = ExchangeListSerializer(exchanges, many=True)
     return Response(serializer.data)
