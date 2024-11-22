@@ -31,7 +31,7 @@
     <!-- 상품 목록 -->
     <div class="product-list">
       <div
-        v-for="product in filteredProducts"
+        v-for="product in paginatedProducts"
         :key="product.fin_prdt_cd"
         class="product-card"
         @click="toggleSelection(product)"
@@ -59,9 +59,10 @@
 
     <!-- 차트 -->
     <BarChart
-      v-if="showingChart && labels.length && datasets.length"
+      v-if="showingChart"
       :labels="labels"
-      :datasets="datasets"
+      :intrRate="intrRate"
+      :intrRate2="intrRate2"
     />
   </div>
 </template>
@@ -80,37 +81,28 @@ const searchTerm = ref("");
 const activeTab = ref("deposit");
 const showingChart = ref(false);
 const labels = ref([]);
-const datasets = ref([]);
+const intrRate = ref([]);
+const intrRate2 = ref([]);
 
 // 페이지네이션
 const currentPage = ref(1);
-const itemsPerPage = 5; // 한 페이지에 표시할 상품 수
+const itemsPerPage = 5;
 
-// 현재 탭의 상품 목록
+// 상품 목록 필터링 및 페이지네이션
 const filteredProducts = computed(() => {
-  const products =
-    activeTab.value === "deposit" ? deposits.value : savings.value;
+  const products = activeTab.value === "deposit" ? deposits.value : savings.value;
 
-  const searchFiltered = products.filter((product) =>
-    product.fin_prdt_nm.includes(searchTerm.value)
+  return products.filter((product) =>
+    product.fin_prdt_nm.toLowerCase().includes(searchTerm.value.toLowerCase())
   );
+});
 
+const paginatedProducts = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  return searchFiltered.slice(start, end);
+  return filteredProducts.value.slice(start, start + itemsPerPage);
 });
 
-// 총 페이지 수
-const totalPages = computed(() => {
-  const products =
-    activeTab.value === "deposit" ? deposits.value : savings.value;
-
-  const searchFiltered = products.filter((product) =>
-    product.fin_prdt_nm.includes(searchTerm.value)
-  );
-
-  return Math.ceil(searchFiltered.length / itemsPerPage);
-});
+const totalPages = computed(() => Math.ceil(filteredProducts.value.length / itemsPerPage));
 
 // 페이지 이동
 const prevPage = () => {
@@ -124,7 +116,7 @@ const nextPage = () => {
 // 탭 변경
 const changeTab = (tab) => {
   activeTab.value = tab;
-  currentPage.value = 1; // 페이지 초기화
+  currentPage.value = 1;
 };
 
 // 상품 선택 토글
@@ -139,42 +131,29 @@ const toggleSelection = (product) => {
 
 // 차트 데이터 생성
 const prepareChartData = () => {
-  if (!selectedProducts.value.length) {
-    console.warn("선택된 상품이 없습니다.");
-    return;
-  }
+  if (!selectedProducts.value.length) return;
 
-  // 선택된 상품의 데이터 유효성 확인 및 필터링
+  // 유효한 상품 데이터만 필터링
   const validProducts = selectedProducts.value.filter(
-    (product) => product.options && product.options.length
+    (product) => product.options && product.options.length > 0
   );
 
   if (!validProducts.length) {
     console.warn("유효한 상품 데이터가 없습니다.");
     labels.value = [];
-    datasets.value = [];
+    intrRate.value = [];
+    intrRate2.value = [];
     return;
   }
 
-  // 차트 라벨 생성
-  labels.value = validProducts[0].options.map((option) => `${option.save_trm}개월`);
-
-  // 데이터셋 생성
-  datasets.value = validProducts.map((product, index) => ({
-    label: product.fin_prdt_nm,
-    data: product.options.map((option) => {
-      const term = parseInt(option.save_trm, 10);
-      const rate = option.intr_rate2 || option.intr_rate || 0;
-      const returns =
-        activeTab.value === "deposit"
-          ? 1000000 * (1 + (rate / 100) * (term / 12)) // 예금 계산
-          : 1000000 * (Math.pow(1 + rate / 1200, term) - 1); // 적금 계산
-      return Math.round(returns);
-    }),
-    backgroundColor: `rgba(${index * 60}, 99, 132, 0.7)`,
-  }));
+  labels.value = validProducts[0]?.options.map((option) => `${option.save_trm}개월`);
+  intrRate.value = validProducts.map((product) =>
+    product.options.map((option) => option.intr_rate || 0)
+  );
+  intrRate2.value = validProducts.map((product) =>
+    product.options.map((option) => option.intr_rate2 || 0)
+  );
 };
-
 
 // 차트 표시
 const showChart = () => {
@@ -194,98 +173,121 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* 페이지 스타일 */
 .compare-page {
   max-width: 800px;
   margin: 0 auto;
   padding: 16px;
+  background-color: #fdf6e3;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* 상품 목록 탭 스타일 */
-.product-tab {
-  display: flex;
-  justify-content: center;
+/* 검색창 스타일 */
+.search-container {
   margin-bottom: 16px;
 }
 
+.search-input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #d1c4b2;
+  border-radius: 8px;
+  background-color: #fffaf3;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 탭 스타일 */
+.product-tab {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
 .product-tab button {
-  background-color: #f8e5c3;
+  padding: 10px 20px;
+  font-size: 16px;
   border: none;
   border-radius: 8px;
-  padding: 8px 16px;
-  margin: 0 4px;
+  background-color: #f8e5c3;
   cursor: pointer;
-  font-weight: bold;
   transition: background-color 0.3s ease;
 }
 
 .product-tab button.active {
   background-color: #e4c089;
+  color: #fff;
+  font-weight: bold;
 }
 
 .product-tab button:hover {
-  background-color: #e4c089;
+  background-color: #d8b679;
 }
 
-/* 상품 목록 */
+/* 상품 카드 스타일 */
 .product-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 10px;
 }
 
 .product-card {
-  background-color: #f8ecd5;
-  border-radius: 12px;
-  padding: 8px;
+  background-color: #fffaf3;
+  border: 1px solid #d1c4b2;
+  border-radius: 8px;
+  padding: 16px;
   text-align: center;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: transform 0.2s, background-color 0.3s;
 }
 
 .product-card.selected {
   background-color: #e4c089;
-}
-
-.product-card:hover {
-  background-color: #f4d4a5;
+  border-color: #c69a5d;
+  transform: scale(1.05);
 }
 
 /* 페이지네이션 */
 .pagination {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin: 16px 0;
+  margin: 20px 0;
 }
 
 .pagination button {
-  background-color: #b57230;
-  color: white;
+  padding: 10px 20px;
+  font-size: 14px;
   border: none;
-  padding: 8px 12px;
   border-radius: 8px;
+  background-color: #c69a5d;
+  color: white;
   cursor: pointer;
 }
 
 .pagination button:disabled {
-  background-color: #ccc;
+  background-color: #ddd;
+  color: #aaa;
   cursor: not-allowed;
 }
 
 /* 비교 버튼 */
 .compare-button {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
   background-color: #8b572a;
   color: white;
-  border: none;
-  border-radius: 12px;
+  margin-top: 20px;
   cursor: pointer;
-  margin-top: 16px;
 }
 
 .compare-button:disabled {
-  background-color: #ccc;
+  background-color: #ddd;
+  color: #aaa;
   cursor: not-allowed;
 }
 </style>
