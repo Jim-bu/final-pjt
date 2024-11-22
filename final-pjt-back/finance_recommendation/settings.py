@@ -81,7 +81,7 @@ REST_FRAMEWORK = {
     ],
     # permission
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',  # 기본적으로 인증 없이 접근 가능
     ],
 }
 MIDDLEWARE = [
