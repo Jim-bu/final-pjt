@@ -40,6 +40,6 @@ const clickBack = function () {
 
 <style scoped>
 .mb-10 {
-  left: 0; /* 스타일 수정 */
+  left: 0;
 }
 </style>

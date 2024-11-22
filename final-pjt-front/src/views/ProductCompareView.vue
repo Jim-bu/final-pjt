@@ -69,7 +69,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import axios from "@/axios";
+import axios from 'axios';
 import BarChart from "@/components/BarChart.vue";
 
 // 상품 데이터

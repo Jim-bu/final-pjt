@@ -1,115 +1,131 @@
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { defineStore } from 'pinia';
 import axios from 'axios';
 
-export const useUserStore = defineStore('users', () => {
-  const API_URL = 'http://127.0.0.1:8000';
-  const router = useRouter();
-  const token = ref(localStorage.getItem('token'));
-  const isLogin = computed(() => token.value !== null);
-  const userInfo = ref({});
-  const userContractDeposits = ref([]);
-  const userContractSavings = ref([]);
+export const useUserStore = defineStore(
+  'users',
+  () => {
+    const API_URL = 'http://127.0.0.1:8000';
+    const router = useRouter();
+    const token = ref(localStorage.getItem('token') || null); // 토큰을 localStorage에서 복원
+    const userInfo = ref(JSON.parse(localStorage.getItem('userInfo')) || null);
+    const userContractDeposits = ref();
+    const userContractSavings = ref();
 
-  // 사용자 정보가 변경될 때 계약 정보 업데이트
-  watch(userInfo, () => {
-    userContractDeposits.value = userInfo.value?.contract_deposit || [];
-    userContractSavings.value = userInfo.value?.contract_saving || [];
-  });
+    // 로그인 여부 계산
+    const isLogin = computed(() => token.value !== null);
 
-  // 사용자 정보 가져오기 (비동기 함수)
-  const getUserInfo = async (username) => {
-    if (!token.value) {
-      console.error('토큰이 없습니다. 로그인이 필요합니다.');
-      return;
-    }
+    // 계약 정보 반응형 업데이트
+    watch(userInfo, () => {
+      userContractDeposits.value = userInfo.value?.contract_deposit;
+      userContractSavings.value = userInfo.value?.contract_saving;
+    });
 
-    try {
-      const response = await axios.get(`${API_URL}/users/${username}/info/`, {
+    // 사용자 정보 가져오기
+    const getUserInfo = function () {
+      if (!token.value) return; // 토큰 없으면 요청하지 않음
+      axios({
+        method: 'get',
+        url: `${API_URL}/users/info/`,
         headers: {
           Authorization: `Token ${token.value}`,
         },
-      });
-      userInfo.value = response.data;
-      console.log('getUserInfo: 사용자 정보:', response.data);
-    } catch (error) {
-      console.error('getUserInfo 오류:', error);
-      userInfo.value = {}; // 사용자 정보 초기화
-    }
-  };
+      })
+        .then((res) => {
+          userInfo.value = res.data;
+          localStorage.setItem('userInfo', JSON.stringify(res.data)); 
+        })
+        .catch((err) => {
+          console.error('사용자 정보 가져오기 실패:', err);
+          logOut(); 
+        });
+    };
 
-  // 회원가입 함수
-  const signUp = async (payload) => {
-    const { username, name, email, password1, password2 } = payload;
+    // 회원가입
+    const signUp = function (payload) {
+      const { username, name, email, password1, password2 } = payload;
+      axios({
+        method: 'post',
+        url: `${API_URL}/accounts/signup/`,
+        data: {
+          username,
+          name,
+          email,
+          password1,
+          password2,
+        },
+      })
+        .then(() => {
+          logIn({ username, password: password1 }); // 회원가입 후 자동 로그인
+        })
+        .catch((err) => {
+          console.error('회원가입 실패:', err);
+        });
+    };
 
-    try {
-      await axios.post(`${API_URL}/accounts/signup/`, {
-        username,
-        name,
-        email,
-        password1,
-        password2,
-      });
-      const loginSuccess = await logIn({ username, password: password1 });
-
-    if (loginSuccess) {
-      router.push({ name: 'Main' }); // 메인 페이지로 리디렉션
-    } else {
-      console.error('자동 로그인 실패');
-    }
-  } catch (error) {
-    console.error('회원가입 오류:', error.response?.data || error);
-  }
-  };
-
-  // 로그인 함수
-  const logIn = async (payload) => {
-    try {
+    // 로그인
+    const logIn = function (payload) {
       const { username, password } = payload;
-      const response = await axios.post(`${API_URL}/accounts/login/`, {
-        username,
-        password,
-      });
-      token.value = response.data.key;
-      localStorage.setItem('token', token.value); // 토큰 저장
-      await getUserInfo(username);
-      router.push({ name: 'Main' });
-      return true;
-    } catch (error) {
-      console.error('로그인 오류:', error.response?.data || error.message);
-      return false;
-    }
-  };
+      console.log('로그인 요청 데이터:', { username, password });
+    
+      axios({
+        method: 'post',
+        url: `${API_URL}/accounts/login/`,
+        data: { username, password },
+      })
+        .then((res) => {
+          console.log('로그인 응답:', res.data);
+          token.value = res.data.key;
+          localStorage.setItem('token', res.data.key); // 토큰 저장
+          getUserInfo(); // 사용자 정보 가져오기
+          router.push({ name: 'Main' });
+        })
+        .catch((err) => {
+          console.error('로그인 요청 실패:', err.response || err);
+        });
+    };
+    
 
-  // 로그아웃 함수
-  const logOut = async () => {
-    try {
-      if (!token.value) return; // 토큰 없으면 로그아웃 필요 없음
-      await axios.post(
-        `${API_URL}/accounts/logout/`, {
-        headers: { Authorization: `Token ${token.value}` },
-        }
-      );
-      token.value = null;
-      localStorage.removeItem('token'); // 토큰 제거
-      userInfo.value = {};
-      router.push({ name: 'Main' }); // 메인 페이지로 이동
-    } catch (error) {
-      console.error('로그아웃 오류:', error.response?.data || error.message);
-    }
-  };
+    // 로그아웃
+    const logOut = function () {
+      axios({
+        method: 'post',
+        url: `${API_URL}/accounts/logout/`,
+        headers: {
+          Authorization: `Token ${token.value}`,
+        },
+      })
+        .then(() => {
+          token.value = null;
+          userInfo.value = null;
+          localStorage.removeItem('token');
+          localStorage.removeItem('userInfo');
+          router.push({ name: 'Main' });
+        })
+        .catch((err) => {
+          console.error('로그아웃 실패:', err);
+        });
+    };
 
-  return {
-    API_URL,
-    token,
-    isLogin,
-    userInfo,
-    userContractDeposits,
-    userContractSavings,
-    getUserInfo,
-    signUp,
-    logIn,
-    logOut,
-  };
-}, { persist: true });
+    onMounted(() => {
+      if (token.value && !userInfo.value) {
+        getUserInfo();
+      }
+    });
+
+    return {
+      API_URL,
+      token,
+      isLogin,
+      userInfo,
+      userContractDeposits,
+      userContractSavings,
+      getUserInfo,
+      signUp,
+      logIn,
+      logOut,
+    };
+  },
+  { persist: true }
+);

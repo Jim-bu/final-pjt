@@ -33,27 +33,39 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from '../axios';
+import axios from 'axios';
 
 const marketData = ref([]);
 const newsData = ref([]);
 
-const fetchMarketData = async () => {
-  try {
-    const response = await axios.get('/api/market-data/');
-    marketData.value = response.data;
-  } catch (error) {
-    console.error('Error fetching market data:', error);
-  }
+// 백 api key
+const fetchMarketData = function () {
+  axios({
+    method: "get",
+    url: "/api/market-data/",
+  })
+    .then((res) => {
+      marketData.value = res.data;
+    })
+    .catch((err) => {
+      console.error("증시 데이터 가져오기 실패:", err);
+      marketData.value = [];
+    });
 };
 
-const fetchNewsData = async () => {
-  try {
-    const response = await axios.get('/api/news/');
-    newsData.value = response.data;
-  } catch (error) {
-    console.error('Error fetching news data:', error);
-  }
+// 프론트 .env apikey
+const fetchNewsData = function () {
+  axios({
+    method: "get",
+    url: `https://example-api.com/news?apikey=${import.meta.env.VITE_NEWS_API_KEY}`,
+  })
+    .then((res) => {
+      newsData.value = res.data;
+    })
+    .catch((err) => {
+      console.error("뉴스 데이터 가져오기 실패:", err);
+      newsData.value = [];
+    });
 };
 
 onMounted(() => {
