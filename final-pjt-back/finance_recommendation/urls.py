@@ -20,11 +20,11 @@ from django.urls import path, include
 
 urlpatterns = [
     path('myadmin/', admin.site.urls),
-    path('', TemplateView.as_view(template_name="index.html")),
+    path('', TemplateView.as_view(template_name="index.html")),  ## TemplateView가 뭔지 ??
     path('api/', include('surveys.urls')),
     path('api/v1/', include('articles.urls')),
     path('accounts/', include('dj_rest_auth.urls')),
-    path('accounts/', include('accounts.urls')),  # 커스텀 accounts 앱 URL 포함
+    path('accounts/', include('accounts.urls')),
     path('accounts/signup/', include('dj_rest_auth.registration.urls')),
     path('currencies/', include('currencies.urls')),
     path('bankings/', include('bankings.urls')),
