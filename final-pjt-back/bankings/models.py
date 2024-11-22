@@ -1,53 +1,57 @@
 from django.db import models
 
 
-class DepositProducts(models.Model):
-    # dcls_month varchar(6) 공시 제출월(YYYYMM)
+class DepositBaseList(models.Model):
+    dcls_month = models.CharField(max_length=6)     # 공시 제출 월 (YYYYMM 형식)
+    fin_co_no = models.CharField(max_length=20)    # 금융 회사 번호
+    fin_prdt_cd = models.CharField(max_length=20)    # 금융 상품 코드
+    kor_co_nm = models.CharField(max_length=100)    # 금융 회사명
+    fin_prdt_nm = models.CharField(max_length=100)    # 금융 상품명
+    join_way = models.TextField()    # 가입 방법 (예: 인터넷, 스마트폰 등)
+    mtrt_int = models.TextField()    # 만기 후 이자율 정보
+    spcl_cnd = models.TextField()    # 우대 조건
+    join_deny = models.IntegerField()    # 가입 제한 (1: 제한 없음, 2: 서민전용, 3: 일부제한)
+    join_member = models.TextField()    # 가입 대상 (예: 개인, 사업자 등)
+    etc_note = models.TextField(null=True, blank=True)    # 기타 정보
+    max_limit = models.BigIntegerField(null=True, blank=True)    # 최대 한도 금액 (없을 경우 null 허용)
+    dcls_strt_day = models.CharField(max_length=8)    # 공시 시작일 (YYYYMMDD 형식)
+    dcls_end_day = models.CharField(max_length=8, null=True, blank=True)    # 공시 종료일 (YYYYMMDD 형식, null 허용)
+    fin_co_subm_day = models.CharField(max_length=14)    # 금융 회사의 데이터 제출일 (YYYYMMDDHHMM 형식)
+
+
+class DepositOptionList(models.Model):
+    product = models.ForeignKey(DepositBaseList, on_delete=models.CASCADE, related_name="deposit_options")
+    save_trm = models.CharField(max_length=10)
+    intr_rate = models.FloatField(null=True, blank=True)  # 허용 설정
+    intr_rate2 = models.FloatField(null=True, blank=True)  # 허용 설정
+    intr_rate_type = models.CharField(max_length=10, null=True, blank=True)
+    intr_rate_type_nm = models.CharField(max_length=20, null=True, blank=True)
     dcls_month = models.CharField(max_length=6)
 
-    # fin_prdt_cd text ( unique ) 금융 상품 코드
-    fin_prdt_cd = models.TextField(unique=True)
-    
-    # kor_co_nm text 금융회사명
-    kor_co_nm = models.TextField()
-    
-    # fin_prdt_nm text 금융 상품명
-    fin_prdt_nm = models.TextField()
-    
-    # etc_note text 금융 상품 설명
-    etc_note = models.TextField()
-    
-    # join_deny integer 가입 제한(1: 제한없음, 2:서민전용, 3:일부제한)
-    join_deny = models.IntegerField()
-    
-    # join_member text 가입대상
-    join_member = models.TextField()
-    
-    # join_way text 가입 방법
-    join_way = models.TextField()
-    
-    # spcl_cnd text 우대조건
-    spcl_cnd = models.TextField()
-    
 
-class DepositOptions(models.Model):
-    # dcls_month varchar(6) 공시 제출월(YYYYMM)
+class SavingBaseList(models.Model):
+    dcls_month = models.CharField(max_length=6)     # 공시 제출 월 (YYYYMM 형식)
+    fin_co_no = models.CharField(max_length=20)    # 금융 회사 번호
+    fin_prdt_cd = models.CharField(max_length=20)    # 금융 상품 코드
+    kor_co_nm = models.CharField(max_length=100)    # 금융 회사명
+    fin_prdt_nm = models.CharField(max_length=100)    # 금융 상품명
+    join_way = models.TextField()    # 가입 방법 (예: 인터넷, 스마트폰 등)
+    mtrt_int = models.TextField()    # 만기 후 이자율 정보
+    spcl_cnd = models.TextField()    # 우대 조건
+    join_deny = models.IntegerField()    # 가입 제한 (1: 제한 없음, 2: 서민전용, 3: 일부제한)
+    join_member = models.TextField()    # 가입 대상 (예: 개인, 사업자 등)
+    etc_note = models.TextField(null=True, blank=True)    # 기타 정보
+    max_limit = models.BigIntegerField(null=True, blank=True)    # 최대 한도 금액 (없을 경우 null 허용)
+    dcls_strt_day = models.CharField(max_length=8)    # 공시 시작일 (YYYYMMDD 형식)
+    dcls_end_day = models.CharField(max_length=8, null=True, blank=True)    # 공시 종료일 (YYYYMMDD 형식, null 허용)
+    fin_co_subm_day = models.CharField(max_length=14)    # 금융 회사의 데이터 제출일 (YYYYMMDDHHMM 형식)
+
+
+class SavingOptionList(models.Model):
+    product = models.ForeignKey(SavingBaseList, on_delete=models.CASCADE, related_name="saving_options")
+    save_trm = models.CharField(max_length=10)
+    intr_rate = models.FloatField(null=True, blank=True)  # 허용 설정
+    intr_rate2 = models.FloatField(null=True, blank=True)  # 허용 설정
+    intr_rate_type = models.CharField(max_length=10, null=True, blank=True)
+    intr_rate_type_nm = models.CharField(max_length=20, null=True, blank=True)
     dcls_month = models.CharField(max_length=6)
-
-    # product integer 외래 키(DepositProducts 클래스 참조)
-    product = models.ForeignKey(DepositProducts, on_delete=models.CASCADE)
-    
-    # fin_prdt_cd text 금융 상품 코드
-    fin_prdt_cd = models.TextField()
-    
-    # intr_rate_type_nm varchar(100) 저축금리 유형명
-    intr_rate_type_nm = models.CharField(max_length=100)
-    
-    # intr_rate float 저축금리
-    intr_rate = models.FloatField()
-    
-    # intr_rate2 float 최고우대금리
-    intr_rate2 = models.FloatField()
-    
-    # save_trm integer 저축기간 (단위: 개월)  
-    save_trm = models.IntegerField()
