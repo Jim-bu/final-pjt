@@ -86,7 +86,7 @@ const intrRate2 = ref([]);
 
 // 페이지네이션
 const currentPage = ref(1);
-const itemsPerPage = 5;
+const itemsPerPage = 6;
 
 // 상품 목록 필터링 및 페이지네이션
 const filteredProducts = computed(() => {
