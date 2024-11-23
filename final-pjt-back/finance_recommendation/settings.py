@@ -39,6 +39,9 @@ STOCKS_KEY = 'napUJp%2BaSVtsZIjCXy8YJhjxR%2Fckk3WKMhL0sF7tliHtVy%2FuOUjz4P3UTe5V
 NAVER_CLIENT_ID = 'Www2nwUTz3LsUOuKExyf'
 NAVER_CLIENT_SECRET = 'aKTPHptBFv'
 
+# OPENAI GPT API 키
+CHATS_KEY = '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'
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -55,6 +58,7 @@ INSTALLED_APPS = [
     'surveys',
     'stocks',
     'economics',
+    'chats',
     'rest_framework',
     'rest_framework.authtoken',
     'dj_rest_auth',

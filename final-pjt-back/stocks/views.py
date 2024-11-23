@@ -7,17 +7,17 @@ import requests
 import xmltodict
 
 
-API_URL = f'https://apis.data.go.kr/1160100/service/GetMarketIndexInfoService/getStockMarketIndex?serviceKey={ STOCKS_KEY }'
+API_URL = f'http://apis.data.go.kr/1160100/service/GetMarketIndexInfoService/getStockMarketIndex?serviceKey={STOCKS_KEY}'
 
 @api_view(['GET'])
 def stock_fetch_data(request):
-    response = requests.get(API_URL)
-
-    # XML 데이터를 JSON 형태로 변환
+    # verify=False 옵션 추가
+    response = requests.get(API_URL, verify=False)
+    
     xml_data = response.content
     data_dict = xmltodict.parse(xml_data)
     items = data_dict.get("response", {}).get("body", {}).get("items", {}).get("item", [])
-
+    
     for item in items:
         defaults = {
             "idx_csf": item.get("idxCsf"),

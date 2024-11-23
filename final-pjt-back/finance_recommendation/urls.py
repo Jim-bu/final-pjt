@@ -30,4 +30,5 @@ urlpatterns = [
     path('api/v1/', include('articles.urls')),  # 경로 수정 예정
     path('stocks/', include('stocks.urls')),
     path('economics/', include('economics.urls')),
+    path('chats/', include('chats.urls')),
 ]
