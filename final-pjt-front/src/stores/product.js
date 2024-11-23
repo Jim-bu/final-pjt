@@ -15,9 +15,9 @@ export const useProductStore = defineStore('product', () => {
     axios({
       method: 'get',
       url: `${API_URL}/bankings/deposit-fetch-data/`,
-      headers: {
-        Authorization: `Token ${token}`,
-      },
+      // headers: {
+      //   Authorization: `Token ${token}`,
+      // },
     })
       .then(() => {
         console.log('예금 데이터가 서버에 저장되었습니다.');
@@ -33,9 +33,9 @@ export const useProductStore = defineStore('product', () => {
     axios({
       method: 'get',
       url: `${API_URL}/bankings/saving-fetch-data/`,
-      headers: {
-        Authorization: `Token ${token}`,
-      },
+      // headers: {
+      //   Authorization: `Token ${token}`,
+      // },
     })
       .then(() => {
         console.log('적금 데이터가 서버에 저장되었습니다.');
@@ -52,9 +52,9 @@ export const useProductStore = defineStore('product', () => {
       const response = await axios({
         method: 'get',
         url: `${API_URL}/bankings/deposit-get-products/`,
-        headers: {
-          Authorization: `Token ${token}`,
-        },
+        // headers: {
+        //   Authorization: `Token ${token}`,
+        // },
       });
       deposits.value = response.data;
     } catch (err) {
@@ -70,9 +70,9 @@ export const useProductStore = defineStore('product', () => {
       const response = await axios({
         method: 'get',
         url: `${API_URL}/bankings/saving-get-products/`,
-        headers: {
-          Authorization: `Token ${token}`,
-        },
+        // headers: {
+        //   Authorization: `Token ${token}`,
+        // },
       });
       savings.value = response.data;
     } catch (err) {
@@ -99,9 +99,9 @@ export const useProductStore = defineStore('product', () => {
       const response = await axios({
         method: 'get',
         url: endpoint,
-        headers: {
-          Authorization: `Token ${token}`,
-        },
+        // headers: {
+        //   Authorization: `Token ${token}`,
+        // },
       });
       selectedProduct.value = response.data;
     } catch (err) {

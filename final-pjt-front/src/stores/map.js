@@ -1,33 +1,54 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
+
 export const loadKakaoMap = () => {
   return new Promise((resolve, reject) => {
+    // 환경 변수 값 디버깅
+    const apiKey = import.meta.env.VITE_APP_KAKAO_MAP_API_KEY;
+    console.log("디버깅: Kakao Maps API Key:", apiKey);
+
+    // API 키가 undefined인 경우 경고 출력
+    if (!apiKey) {
+      console.error("Kakao Maps API Key가 정의되지 않았습니다. .env 파일을 확인하세요.");
+      reject(new Error("Kakao Maps API Key가 정의되지 않았습니다."));
+      return;
+    }
+
+    // 이미 Kakao Maps가 로드된 경우
     if (window.kakao && window.kakao.maps) {
+      console.log("Kakao Maps가 이미 로드되어 있습니다.");
       resolve(window.kakao);
       return;
     }
 
+    // 스크립트 동적으로 로드
     const script = document.createElement("script");
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_APP_KAKAO_MAP_API_KEY}&autoload=false&libraries=services`;
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&autoload=false&libraries=services`;
     script.async = true;
 
+    // 스크립트 로드 성공
     script.onload = () => {
+      console.log("Kakao 지도 API 스크립트 로드 성공");
       if (window.kakao && window.kakao.maps) {
         resolve(window.kakao);
       } else {
+        console.error("Kakao 지도 API 로드 실패: window.kakao가 정의되지 않았습니다.");
         reject(new Error("Kakao 지도 API 로드 실패"));
       }
     };
 
-    script.onerror = () => {
+    // 스크립트 로드 실패
+    script.onerror = (error) => {
+      console.error("Kakao 지도 API 스크립트 로드 실패:", error);
       reject(new Error("Kakao 지도 API 스크립트 로드 실패"));
     };
 
+    // 스크립트를 head에 추가
+    console.log("Kakao 지도 API 스크립트를 로드합니다:", script.src);
     document.head.appendChild(script);
   });
 };
-
 
 
 export const useMapStore = defineStore("map", () => {
