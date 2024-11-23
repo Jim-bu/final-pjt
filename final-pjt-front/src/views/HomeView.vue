@@ -13,7 +13,7 @@
 
     <!-- 환율 정보 바로가기 -->
     <div class="buttons-box">
-      <button class="action-button" @click="goToPage('exchangeRates')">환율 정보 바로가기</button>
+      <button class="action-button" @click="goToPage('exchange')">환율 정보 바로가기</button>
     </div>
 
     <!-- 지도 섹션 -->
