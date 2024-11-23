@@ -3,10 +3,60 @@
     <h1>환율 정보</h1>
 
     <!-- 기준 통화 -->
-    <p><strong>기준 통화:</strong> 대한민국 원 (KRW)</p>
+    <!-- <p><strong>기준 통화:</strong> 대한민국 1000원 (KRW) 대비 환율</p> -->
+     <br>
 
-    <!-- 미국 달러와 일본 엔화 시각화 -->
+    <!-- 전체 통화 환율 시각화 -->
     <div id="chart" class="exchange-chart"></div>
+
+    <!-- 환율 계산기 -->
+    <div class="calculator-section">
+      <h2>환율 계산기</h2>
+      <div class="calculator">
+        <div class="input-group">
+          <input 
+            v-model.number="calculatorAmount" 
+            type="number" 
+            min="0"
+            placeholder="변환 금액 입력"
+          >
+          <select v-model="fromCurrency">
+            <option v-for="currency in availableCurrencies" 
+                    :key="currency" 
+                    :value="currency">
+              {{ getCurrencyName(currency) }}
+            </option>
+          </select>
+        </div>
+
+        <button @click="swapCurrencies" class="swap-button">⇄</button>
+
+        <div class="input-group">
+          <input 
+            v-model="calculatedAmount" 
+            type="number" 
+            readonly 
+            :placeholder="calculationResult || '변환된 금액'"
+          >
+          <select v-model="toCurrency">
+            <option v-for="currency in availableCurrencies" 
+                    :key="currency" 
+                    :value="currency">
+              {{ getCurrencyName(currency) }}
+            </option>
+          </select>
+        </div>
+
+        <button 
+          @click="calculateAmount" 
+          :disabled="!isValidCalculation"
+          class="calculate-button"
+        >
+          계산하기
+        </button>
+      </div>
+    </div>
+    <br>
 
     <!-- 사용자 입력: 기준 통화 선택 -->
     <div class="controls">
@@ -66,13 +116,18 @@
 
 <script setup>
 import { onMounted, ref, computed } from "vue";
-import { fetchExchangeData, getExchangeData } from "@/stores/exchange";
+import { fetchExchangeData, getExchangeData, calculateExchange } from "@/stores/exchange";
 import * as echarts from "echarts";
 
 // 상태 변수
 const exchanges = ref([]);
 const loading = ref(false);
-const selectedBaseCurrency = ref("USD"); // 초기 비교 통화: USD (사용자 선택)
+const selectedBaseCurrency = ref("USD");
+const calculatorAmount = ref(null);
+const fromCurrency = ref('USD');
+const toCurrency = ref('KRW');
+const calculatedAmount = ref(null);
+const calculationResult = ref('');
 
 // 전체 통화 단위 목록
 const availableCurrencies = computed(() =>
@@ -85,15 +140,37 @@ const krwRate = computed(() => {
   return krw ? parseFloat(krw.deal_bas_r) : 1;
 });
 
-// 미국 달러와 일본 엔화 데이터
-const usdJpyData = computed(() => {
-  const usd = exchanges.value.find((item) => item.cur_unit === "USD");
-  const jpy = exchanges.value.find((item) => item.cur_unit === "JPY");
+// 전체 통화 환율 데이터 (1000원 기준, 정규화 적용)
+const allCurrencyData = computed(() => {
+  if (!exchanges.value.length) return [];
+  
+  // KRW를 제외한 모든 통화의 환율 데이터 추출
+  const currencyData = exchanges.value
+    .filter(item => item.cur_unit !== 'KRW')
+    .map(item => {
+      let rate;
+      if (item.cur_unit === 'JPY(100)') {
+        // 엔화의 경우 100엔 단위로 제공되므로 조정
+        rate = (1000 / parseFloat(item.deal_bas_r.replace(',', ''))) * 100;
+      } else {
+        rate = 1000 / parseFloat(item.deal_bas_r.replace(',', ''));
+      }
+      return {
+        name: `${item.cur_unit} (${item.cur_nm})`,
+        rate: rate,
+        original: parseFloat(item.deal_bas_r.replace(',', ''))
+      };
+    });
 
-  return [
-    { name: "미국 달러 (USD)", rate: usd ? parseFloat(usd.deal_bas_r) : 0 },
-    { name: "일본 엔화 (JPY)", rate: jpy ? parseFloat(jpy.deal_bas_r) : 0 },
-  ];
+  // 정규화를 위한 최대/최소값 계산
+  const maxRate = Math.max(...currencyData.map(item => item.rate));
+  const minRate = Math.min(...currencyData.map(item => item.rate));
+
+  // 정규화 적용 (0~100 범위로 스케일링)
+  return currencyData.map(item => ({
+    ...item,
+    normalizedRate: (((item.rate - minRate) / (maxRate - minRate)) * 100).toFixed(2)
+  }));
 });
 
 // 기준 통화에 따른 환율 계산
@@ -104,14 +181,22 @@ const conversionRates = computed(() => {
 
   if (!baseCurrency || !baseCurrency.deal_bas_r) return [];
 
-  const baseRate = parseFloat(baseCurrency.deal_bas_r);
+  const baseRate = parseFloat(baseCurrency.deal_bas_r.replace(',', ''));
   return exchanges.value
     .filter((item) => item.cur_unit !== selectedBaseCurrency.value)
     .map((item) => ({
       cur_unit: item.cur_unit,
       cur_nm: item.cur_nm,
-      rate: (parseFloat(item.deal_bas_r) / baseRate).toFixed(4), // 기준 통화 대비 비율
+      rate: (parseFloat(item.deal_bas_r.replace(',', '')) / baseRate).toFixed(4),
     }));
+});
+
+// 계산기 유효성 검사
+const isValidCalculation = computed(() => {
+  return calculatorAmount.value > 0 && 
+         fromCurrency.value && 
+         toCurrency.value && 
+         fromCurrency.value !== toCurrency.value;
 });
 
 // 데이터 로드
@@ -120,7 +205,7 @@ const loadExchangeData = async () => {
     loading.value = true;
     const data = await getExchangeData();
     exchanges.value = data;
-    renderChart(); // 데이터 로드 후 차트 렌더링
+    renderChart();
   } catch (error) {
     console.error("환율 데이터를 가져오는 중 오류 발생:", error);
   } finally {
@@ -131,36 +216,108 @@ const loadExchangeData = async () => {
 // ECharts 차트 렌더링
 const renderChart = () => {
   const chart = echarts.init(document.getElementById("chart"));
-  const data = usdJpyData.value;
+  const data = allCurrencyData.value;
 
   const options = {
     title: {
-      text: "KRW 기준 주요 통화 환율",
+      text: "1,000원 기준 각국 통화 환율",
       left: "center",
     },
     tooltip: {
       trigger: "item",
+      formatter: function (params) {
+        return `
+          ${params.name}<br/>
+          1,000원 = ${params.data.rate.toFixed(2)}<br/>
+          (1 ${params.name.split(" ")[0]} = ${params.data.original}원)
+        `;
+      },
+    },
+    grid: {
+      top: "20%", // 상단 여백
+      bottom: "20%", // 하단 여백 제거
+      left: "12%", // 왼쪽 여백
+      right: "7%", // 오른쪽 여백
+      containLabel: false, // 레이블 공간 제거
     },
     xAxis: {
       type: "category",
-      data: data.map((item) => item.name),
+      data: data.map((item) => item.name.split(' ')[0]), // 약어만 출력
+      axisLabel: {
+        interval: 0,
+        rotate: 45,
+        fontSize: 10,
+      },
+      show: true, // X축 숨기기
     },
     yAxis: {
-      type: "value",
+      type: "log", // 로그 스케일 적용
+      logBase: 10, // 로그 베이스를 10으로 설정
+      name: "LOG SCALE",
+      axisLabel: {
+        formatter: (value) => `${value.toFixed(2)}`, // 값을 보기 쉽게 표시
+      },
     },
     series: [
       {
-        data: data.map((item) => item.rate),
-        type: "bar",
+        data: data.map((item) => ({
+          value: item.rate,
+          rate: item.rate,
+          original: item.original,
+        })),
+        type: "bar", // 막대 그래프로 시각화
+        barWidth: "60%",
+        itemStyle: {
+          color: "#85725d", // 막대 색상
+        },
         label: {
-          show: true,
+          show: false,
           position: "top",
+          formatter: (params) => params.data.rate.toFixed(2),
+          fontSize: 10,
         },
       },
     ],
   };
 
   chart.setOption(options);
+
+  window.addEventListener("resize", () => {
+    chart.resize();
+  });
+};
+
+// 통화명 조회 함수
+const getCurrencyName = (currencyUnit) => {
+  const currency = exchanges.value.find(c => c.cur_unit === currencyUnit);
+  return currency ? `${currencyUnit} (${currency.cur_nm})` : currencyUnit;
+};
+
+// 환율 계산 함수
+const calculateAmount = async () => {
+  if (!isValidCalculation.value) return;
+  
+  try {
+    const result = await calculateExchange(
+      calculatorAmount.value,
+      fromCurrency.value,
+      toCurrency.value
+    );
+    calculatedAmount.value = result.converted_amount;
+    calculationResult.value = `${result.converted_amount} ${toCurrency.value}`;
+  } catch (error) {
+    console.error('환율 계산 실패:', error);
+    calculationResult.value = '계산 실패';
+  }
+};
+
+// 통화 스왑 함수
+const swapCurrencies = () => {
+  [fromCurrency.value, toCurrency.value] = 
+    [toCurrency.value, fromCurrency.value];
+  if (calculatorAmount.value) {
+    calculateAmount();
+  }
 };
 
 // Vue 컴포넌트 마운트 시 데이터 로드
@@ -175,6 +332,39 @@ onMounted(() => {
   margin: 0 auto;
   padding: 20px;
   font-family: "Arial", sans-serif;
+}
+
+.calculator-section {
+  margin-top: 1rem; /* 공간 줄이기 */
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.calculator {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.input-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input-group input {
+  width: 150px;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.input-group select {
+  min-width: 120px;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 .controls {
@@ -199,7 +389,8 @@ onMounted(() => {
 .exchange-chart {
   width: 100%;
   height: 400px;
-  margin: 20px 0;
+  margin: 0; /* 기존 여백 제거 */
+  padding: 0; /* 기존 패딩 제거 */
 }
 
 table {
@@ -227,5 +418,27 @@ label {
 h2 {
   margin-top: 20px;
   font-size: 18px;
+}
+
+.swap-button {
+  padding: 0.5rem 1rem;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.calculate-button {
+  padding: 0.5rem 1rem;
+  background-color: #85725d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.calculate-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 </style>

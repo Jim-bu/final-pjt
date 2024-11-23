@@ -1,25 +1,38 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/users'
+import { storeToRefs } from 'pinia'
 
 const userStore = useUserStore()
+const { userInfo } = storeToRefs(userStore)
 
+onMounted(() => {
+  if (userStore.isLogin) {
+    userStore.getUserInfo()
+  }
+})
 </script>
 
 <template>
   <div class="container">
     <header class="d-flex align-center mb-7">
-      <RouterLink :to="{ name: 'myPage', params: { username: userStore.userInfo.username }}" exact-active-class="active">회원 정보 관리</RouterLink>
+      <RouterLink 
+        :to="{ name: 'myPage', params: { username: userStore.userInfo?.username }}" 
+        exact-active-class="active"
+      >
+        회원 정보 관리
+      </RouterLink>
       <p>|</p>
-      <!-- <RouterLink :to="{ name: 'productManage', params: { username: userStore.userInfo.username }}" exact-active-class="active">가입 상품 관리</RouterLink>
-      <p>|</p> -->
-      <!-- <RouterLink :to="{ name: 'productRecommend', params: { username: userStore.userInfo.username }}" exact-active-class="active">상품 추천 받기</RouterLink> -->
+      <!-- <RouterLink :to="{ name: 'productManage', params: { username: userStore.userInfo?.username }}" exact-active-class="active">가입 상품 관리</RouterLink>
+      <p>|</p>
+      <RouterLink :to="{ name: 'productRecommend', params: { username: userStore.userInfo?.username }}" exact-active-class="active">상품 추천 받기</RouterLink> -->
     </header>
     <RouterView />
   </div>
 </template>
 
 <style scoped>
+/* 기존 스타일 유지 */
 .container {
   width: 600px;
   margin: 2rem auto;

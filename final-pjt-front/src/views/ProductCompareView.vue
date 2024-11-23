@@ -1,6 +1,6 @@
 <template>
   <div class="compare-page">
-    <h1>상품 비교</h1>
+    <h1>금융 상품 비교</h1>
 
     <!-- 검색 필드 -->
     <div class="search-container">
@@ -8,7 +8,7 @@
         v-model="searchTerm"
         class="search-input"
         type="text"
-        placeholder="상품명을 검색하세요..."
+        placeholder="은행명 또는 상품명을 검색하세요..."
       />
     </div>
 
@@ -28,6 +28,11 @@
       </button>
     </div>
 
+    <!-- 선택된 상품 수 표시 -->
+    <div class="selection-info">
+      선택된 상품: {{ selectedProducts.length }} / {{ productStructure.maxSelection }}
+    </div>
+
     <!-- 상품 목록 -->
     <div class="product-list">
       <div
@@ -37,14 +42,16 @@
         @click="toggleSelection(product)"
         :class="{ selected: selectedProducts.includes(product) }"
       >
-        <span>{{ product.fin_prdt_nm }}</span>
+        <h5>{{ product.kor_co_nm }}</h5>
+        <p>{{ product.fin_prdt_nm }}</p>
+        <!-- <p>최고금리: {{ getMaxInterestRate(product) }}%</p> -->
       </div>
     </div>
 
     <!-- 페이지네이션 -->
     <div class="pagination">
       <button :disabled="currentPage === 1" @click="prevPage">이전</button>
-      <span>페이지 {{ currentPage }} / {{ totalPages }}</span>
+      <span>{{ currentPage }} / {{ totalPages }}</span>
       <button :disabled="currentPage === totalPages" @click="nextPage">다음</button>
     </div>
 
@@ -54,15 +61,15 @@
       :disabled="selectedProducts.length < 2"
       @click="showChart"
     >
-      선택 상품 비교
+      선택 상품 비교하기
     </button>
 
     <!-- 차트 -->
     <BarChart
       v-if="showingChart"
       :labels="labels"
-      :intrRate="intrRate"
-      :intrRate2="intrRate2"
+      :datasets="chartDatasets"
+      :title="chartTitle"
     />
   </div>
 </template>
@@ -72,39 +79,59 @@ import { ref, computed, onMounted } from "vue";
 import { useProductStore } from "../stores/product";
 import BarChart from "@/components/BarChart.vue";
 
-// Store 및 데이터 선언
+// 상품 데이터 구조체 정의
+const productStructure = {
+  deposits: ref([]),
+  savings: ref([]),
+  selectedProducts: ref([]),
+  maxSelection: 3
+};
+
+// Store 및 기본 상태 관리
 const productStore = useProductStore();
-const deposits = ref([]);
-const savings = ref([]);
 const selectedProducts = ref([]);
 const searchTerm = ref("");
 const activeTab = ref("deposit");
 const showingChart = ref(false);
 const labels = ref([]);
-const intrRate = ref([]);
-const intrRate2 = ref([]);
+const chartDatasets = ref([]);
+const chartTitle = computed(() => 
+  `${activeTab.value === 'deposit' ? '예금' : '적금'} 상품 금리 비교`
+);
 
-// 페이지네이션
+// 페이지네이션 관련
 const currentPage = ref(1);
 const itemsPerPage = 6;
 
-// 상품 목록 필터링 및 페이지네이션
-const filteredProducts = computed(() => {
-  const products = activeTab.value === "deposit" ? deposits.value : savings.value;
+// 최대 금리 계산 함수
+const getMaxInterestRate = (product) => {
+  if (!product.deposit_options || !product.deposit_options.length) return 0;
+  return Math.max(...product.deposit_options.map(opt => Number(opt.intr_rate2))).toFixed(2);
+};
 
-  return products.filter((product) =>
-    product.fin_prdt_nm.toLowerCase().includes(searchTerm.value.toLowerCase())
+// 필터링된 상품 목록
+const filteredProducts = computed(() => {
+  const products = activeTab.value === "deposit" ? 
+    productStructure.deposits.value : 
+    productStructure.savings.value;
+  
+  return products.filter(product => 
+    product.fin_prdt_nm.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+    product.kor_co_nm.toLowerCase().includes(searchTerm.value.toLowerCase())
   );
 });
 
+// 페이지네이션된 상품 목록
 const paginatedProducts = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
   return filteredProducts.value.slice(start, start + itemsPerPage);
 });
 
-const totalPages = computed(() => Math.ceil(filteredProducts.value.length / itemsPerPage));
+const totalPages = computed(() => 
+  Math.ceil(filteredProducts.value.length / itemsPerPage)
+);
 
-// 페이지 이동
+// 페이지 이동 함수
 const prevPage = () => {
   if (currentPage.value > 1) currentPage.value--;
 };
@@ -113,62 +140,73 @@ const nextPage = () => {
   if (currentPage.value < totalPages.value) currentPage.value++;
 };
 
-// 탭 변경
+// 탭 변경 함수
 const changeTab = (tab) => {
   activeTab.value = tab;
   currentPage.value = 1;
+  selectedProducts.value = [];
+  showingChart.value = false;
 };
 
-// 상품 선택 토글
+// 상품 선택 토글 함수
 const toggleSelection = (product) => {
   const index = selectedProducts.value.indexOf(product);
   if (index === -1) {
+    if (selectedProducts.value.length >= productStructure.maxSelection) {
+      alert(`최대 ${productStructure.maxSelection}개의 상품만 선택할 수 있습니다.`);
+      return;
+    }
     selectedProducts.value.push(product);
   } else {
     selectedProducts.value.splice(index, 1);
   }
 };
 
-// 차트 데이터 생성
-const prepareChartData = () => {
-  if (!selectedProducts.value.length) return;
-
-  // 유효한 상품 데이터만 필터링
-  const validProducts = selectedProducts.value.filter(
-    (product) => product.options && product.options.length > 0
-  );
-
-  if (!validProducts.length) {
-    console.warn("유효한 상품 데이터가 없습니다.");
-    labels.value = [];
-    intrRate.value = [];
-    intrRate2.value = [];
+// 차트 표시 함수
+const showChart = () => {
+  if (selectedProducts.value.length < 2) {
+    alert('최소 2개 이상의 상품을 선택해주세요.');
     return;
   }
 
-  labels.value = validProducts[0]?.options.map((option) => `${option.save_trm}개월`);
-  intrRate.value = validProducts.map((product) =>
-    product.options.map((option) => option.intr_rate || 0)
+  const validProducts = selectedProducts.value.filter(
+    product => product.deposit_options && product.deposit_options.length > 0
   );
-  intrRate2.value = validProducts.map((product) =>
-    product.options.map((option) => option.intr_rate2 || 0)
-  );
-};
 
-// 차트 표시
-const showChart = () => {
-  prepareChartData();
+  if (!validProducts.length) {
+    alert('선택된 상품의 금리 정보가 없습니다.');
+    return;
+  }
+
+  // 기간별 금리 데이터 구성
+  const periods = [...new Set(validProducts.flatMap(product => 
+    product.deposit_options.map(option => option.save_trm)
+  ))].sort((a, b) => Number(a) - Number(b));
+
+  labels.value = periods.map(period => `${period}개월`);
+  
+  chartDatasets.value = validProducts.map((product, index) => ({
+    label: `${product.kor_co_nm} - ${product.fin_prdt_nm}`,
+    data: periods.map(period => {
+      const option = product.deposit_options.find(opt => opt.save_trm === period);
+      return option ? Number(option.intr_rate2) : 0;
+    }),
+    backgroundColor: `hsla(${index * 360 / validProducts.length}, 70%, 50%, 0.8)`,
+    borderColor: `hsla(${index * 360 / validProducts.length}, 70%, 40%, 1)`,
+    borderWidth: 1
+  }));
+
   showingChart.value = true;
 };
 
-// 데이터 로드
+// 초기 데이터 로드
 onMounted(async () => {
   await productStore.saveDeposits();
   await productStore.saveSavings();
   await productStore.fetchDeposits();
   await productStore.fetchSavings();
-  deposits.value = productStore.deposits;
-  savings.value = productStore.savings;
+  productStructure.deposits.value = productStore.deposits;
+  productStructure.savings.value = productStore.savings;
 });
 </script>
 

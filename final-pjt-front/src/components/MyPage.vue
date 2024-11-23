@@ -2,8 +2,24 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 
-const API_URL = "http://127.0.0.1:8000/accounts/user-fields/"; // Django API URL
-const userFields = ref(null); // 사용자 정보 저장
+const API_URL = "http://127.0.0.1:8000/accounts/user_info/";
+const userFields = ref(null);
+
+// 금액 포맷팅 함수
+const formatCurrency = (value) => {
+  if (value === null || value === undefined) return '미입력';
+  return new Intl.NumberFormat('ko-KR', { 
+    style: 'currency', 
+    currency: 'KRW',
+    maximumFractionDigits: 0 
+  }).format(value);
+};
+
+// 기간 포맷팅 함수
+const formatPeriod = (months) => {
+  if (!months) return '미입력';
+  return `${months}개월`;
+};
 
 // 사용자 정보 가져오기
 const fetchUserFields = async () => {
@@ -16,90 +32,215 @@ const fetchUserFields = async () => {
 
     const response = await axios.get(API_URL, {
       headers: {
-        Authorization: `Token ${token}`, // 인증 토큰 설정
+        Authorization: `Token ${token}`,
       },
     });
+    
     const data = response.data;
-    // 필요한 필드만 저장, 숫자 필드는 정수로 변환
+    // Django 모델의 Decimal 필드를 적절히 처리
     userFields.value = {
       id: data.id,
       username: data.username,
       email: data.email,
       name: data.name,
       age: data.age,
-      money: data.money ? parseInt(data.money, 10) : null,
-      salary: data.salary ? parseInt(data.salary, 10) : null,
-      desire_amount_deposit: data.desire_amount_deposit ? parseInt(data.desire_amount_deposit, 10) : null,
+      money: data.money ? parseFloat(data.money) : null,
+      salary: data.salary ? parseFloat(data.salary) : null,
+      desire_amount_deposit: data.desire_amount_deposit ? parseFloat(data.desire_amount_deposit) : null,
       deposit_period: data.deposit_period,
-      desire_amount_saving: data.desire_amount_saving ? parseInt(data.desire_amount_saving, 10) : null,
+      desire_amount_saving: data.desire_amount_saving ? parseFloat(data.desire_amount_saving) : null,
       saving_period: data.saving_period,
     };
-    console.log("사용자 정보:", userFields.value); // 디버깅 로그
   } catch (error) {
     console.error("사용자 정보 가져오기 실패:", error.response?.data || error);
-    userFields.value = null; // 실패 시 초기화
+    userFields.value = null;
   }
 };
 
 onMounted(() => {
-  fetchUserFields(); // 컴포넌트 마운트 시 사용자 정보 가져오기
+  fetchUserFields();
 });
 </script>
 
 <template>
-  <div>
-    <h1 v-if="userFields" class="page-title">{{ userFields.name }}님의 프로필 정보</h1>
-    <p v-else class="loading">사용자 정보를 불러오는 중입니다...</p>
+  <div class="profile-container">
+    <!-- 프로필 헤더 -->
+    <div class="profile-header" v-if="userFields">
+      <div class="profile-image">
+        <!-- <img src="@/assets/profile-placeholder.png" alt="프로필 이미지" /> -->
+      </div>
+      <h1 class="profile-title">{{ userFields.name || userFields.username }}님의 프로필</h1>
+    </div>
 
-    <div v-if="userFields">
-      <ul class="user-info">
-        <h1>### profile picture 추가 ###</h1>
-        <h1>### 숫자에 comma(,) 추가 ###</h1>
+    <!-- 사용자 정보 -->
+    <div v-if="userFields" class="info-sections">
+      <!-- 기본 정보 -->
+      <section class="info-section">
+        <h2>기본 정보</h2>
+        <div class="info-content">
+          <div class="info-item">
+            <span class="label">아이디</span>
+            <span class="value">{{ userFields.username }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">이메일</span>
+            <span class="value">{{ userFields.email }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">닉네임</span>
+            <span class="value">{{ userFields.name || '미입력' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">나이</span>
+            <span class="value">{{ userFields.age ? `${userFields.age}세` : '미입력' }}</span>
+          </div>
+        </div>
+      </section>
 
-        <li><strong>유저 ID:</strong> {{ userFields.id }}</li>
-        <li><strong>이메일:</strong> {{ userFields.email }}</li>
-        <li><strong>나이:</strong> {{ userFields.age || "미입력" }}</li>
-        <li><strong>자산:</strong> {{ userFields.money !== null ? `${userFields.money} 원` : "미입력" }}</li>
-        <li><strong>연봉:</strong> {{ userFields.salary !== null ? `${userFields.salary} 원` : "미입력" }}</li>
-        <li><strong>예금 희망 금액:</strong> {{ userFields.desire_amount_deposit !== null ? `${userFields.desire_amount_deposit} 원` : "미입력" }}</li>
-        <li><strong>예금 희망 기간:</strong> {{ userFields.deposit_period ? `${userFields.deposit_period} 개월` : "미입력" }}</li>
-        <li><strong>월 적금 희망 금액:</strong> {{ userFields.desire_amount_saving !== null ? `${userFields.desire_amount_saving} 원` : "미입력" }}</li>
-        <li><strong>적금 희망 기간:</strong> {{ userFields.saving_period ? `${userFields.saving_period} 개월` : "미입력" }}</li>
-      </ul>
+      <!-- 자산 정보 -->
+      <section class="info-section">
+        <h2>자산 정보</h2>
+        <div class="info-content">
+          <div class="info-item">
+            <span class="label">현재 자산</span>
+            <span class="value">{{ formatCurrency(userFields.money) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">연봉</span>
+            <span class="value">{{ formatCurrency(userFields.salary) }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 금융 상품 희망 정보 -->
+      <section class="info-section">
+        <h2>예금 희망 정보</h2>
+        <div class="info-content">
+          <div class="info-item">
+            <span class="label">희망 금액</span>
+            <span class="value">{{ formatCurrency(userFields.desire_amount_deposit) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">희망 기간</span>
+            <span class="value">{{ formatPeriod(userFields.deposit_period) }}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="info-section">
+        <h2>적금 희망 정보</h2>
+        <div class="info-content">
+          <div class="info-item">
+            <span class="label">월 희망 금액</span>
+            <span class="value">{{ formatCurrency(userFields.desire_amount_saving) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">희망 기간</span>
+            <span class="value">{{ formatPeriod(userFields.saving_period) }}</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 로딩 상태 -->
+    <div v-else class="loading">
+      사용자 정보를 불러오는 중입니다...
     </div>
   </div>
 </template>
 
 <style scoped>
-.page-title {
-  font-size: 28px;
+.profile-container {
+  max-width: 800px;
+  /* margin: 0 auto; */
+  padding: 20px;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.profile-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+.profile-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-title {
+  font-size: 24px;
   font-weight: bold;
-  text-align: center;
-  margin-bottom: 20px;
   color: #333;
+}
+
+.info-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.info-section {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.info-section h2 {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.info-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.label {
+  font-size: 14px;
+  color: #666;
+}
+
+.value {
+  font-size: 16px;
+  color: #333;
+  font-weight: 500;
 }
 
 .loading {
   text-align: center;
-  font-size: 18px;
+  padding: 20px;
   color: #666;
 }
 
-.user-info {
-  margin: 0 auto;
-  padding: 0;
-  list-style: none;
-  font-size: 18px;
-  line-height: 2;
-  max-width: 800px;
-}
+@media (max-width: 600px) {
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+  }
 
-.user-info li {
-  margin-bottom: 10px;
-  color: #444;
-}
-
-.user-info strong {
-  color: #333;
+  .info-content {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

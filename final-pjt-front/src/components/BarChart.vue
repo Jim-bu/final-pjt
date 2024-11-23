@@ -3,121 +3,122 @@
     <div v-if="hasData" class="chart-container">
       <canvas id="bar-chart"></canvas>
     </div>
-    <p v-else class="no-data-message">유효한 데이터가 없습니다.</p>
+    <p v-else class="no-data-message">표시할 데이터가 없습니다.</p>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import Chart from "chart.js/auto";
-import colors from "vuetify/lib/util/colors";
 
-// Props 정의
 const props = defineProps({
   labels: {
     type: Array,
     default: () => [],
   },
-  intrRate: {
+  datasets: {
     type: Array,
     default: () => [],
   },
-  intrRate2: {
-    type: Array,
-    default: () => [],
+  title: {
+    type: String,
+    default: "금리 비교 차트",
   },
 });
 
-// 차트 인스턴스 및 데이터 유효성 검사
 const chartInstance = ref(null);
-const hasData = computed(
-  () =>
-    props.labels.length > 0 &&
-    (props.intrRate.some((value) => value.length > 0) || props.intrRate2.some((value) => value.length > 0))
+
+const hasData = computed(() => 
+  props.labels.length > 0 && props.datasets.some(dataset => dataset.data.length > 0)
 );
 
-// 차트 데이터 구성
-const chartData = computed(() => {
-  if (!hasData.value) {
-    return null;
-  }
-
-  const datasets = [];
-  if (props.intrRate.length) {
-    datasets.push({
-      label: "저축 금리",
-      data: props.intrRate,
-      backgroundColor: "#1089FF",
-      stack: "Stack 0",
-    });
-  }
-  if (props.intrRate2.length) {
-    datasets.push({
-      label: "최고 우대 금리",
-      data: props.intrRate2,
-      backgroundColor: colors.red.accent2,
-      stack: "Stack 1",
-    });
-  }
-
-  return {
-    labels: props.labels,
-    datasets,
+// debounce 함수
+const debounce = (fn, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn.apply(this, args), delay);
   };
-});
+};
 
-// 차트 렌더링 함수
 const renderChart = () => {
-  const ctx = document.getElementById("bar-chart")?.getContext("2d");
-  if (!ctx || !hasData.value) {
-    console.warn("유효한 데이터가 없습니다.");
-    return;
-  }
+  const canvas = document.getElementById("bar-chart");
+  if (!canvas) return;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
 
   if (chartInstance.value) {
-    chartInstance.value.destroy(); // 기존 차트 제거
+    chartInstance.value.destroy();
   }
 
   chartInstance.value = new Chart(ctx, {
     type: "bar",
-    data: chartData.value,
+    data: {
+      labels: props.labels,
+      datasets: props.datasets,
+    },
     options: {
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         title: {
           display: true,
-          text: "선택한 상품 비교 차트",
+          text: props.title,
+          font: { size: 16, weight: 'bold' }
         },
+        tooltip: {
+          callbacks: {
+            label: (context) => `${context.dataset.label}: ${context.raw}%`
+          }
+        },
+        legend: {
+          display: true,
+          position: "top",
+        }
       },
-      responsive: true,
-      maintainAspectRatio: false,
       scales: {
         y: {
           beginAtZero: true,
-          ticks: {
-            callback: (value) => `${value}%`,
+          title: {
+            display: true,
+            text: '금리 (%)'
           },
+          ticks: {
+            callback: (value) => `${value}%`
+          }
         },
         x: {
           ticks: {
             font: {
-              size: 12,
-            },
-          },
-        },
-      },
-    },
+              size: 12
+            }
+          }
+        }
+      }
+    }
   });
 };
 
-// Props 변경 감지 및 렌더링
-watch([props.labels, props.intrRate, props.intrRate2], renderChart, { deep: true });
+// 데이터 변경 감지
+watch([() => props.labels, () => props.datasets], renderChart, { deep: true });
 
-// 초기 렌더링
+// 차트 생성 및 리사이즈 이벤트 처리
 onMounted(() => {
-  if (hasData.value) renderChart();
+  if (hasData.value) {
+    renderChart();
+    window.addEventListener('resize', debounce(renderChart, 250));
+  }
+});
+
+// 컴포넌트 제거 시 이벤트 리스너 정리
+onBeforeUnmount(() => {
+  if (chartInstance.value) {
+    chartInstance.value.destroy();
+  }
+  window.removeEventListener('resize', debounce(renderChart, 250));
 });
 </script>
-
 <style scoped>
 .chart-container {
   max-width: 100%;

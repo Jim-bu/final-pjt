@@ -33,3 +33,23 @@ export const fetchExchangeData = function () {
       throw err;
     });
 };
+
+export const calculateExchange = function (amount, fromCurrency, toCurrency) {
+  return axios({
+    method: "post",
+    url: `${API_URL}/currencies/exchange-calculate/`,
+    data: {
+      amount,
+      from_currency: fromCurrency,
+      to_currency: toCurrency
+    }
+  })
+    .then((response) => {
+      console.log("환율 계산 성공:", response.data);
+      return response.data;
+    })
+    .catch((err) => {
+      console.error("환율 계산 실패:", err);
+      throw err;
+    });
+};
