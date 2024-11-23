@@ -5,7 +5,6 @@ import RecommendationView from '@/views/RecommendationView.vue';
 import SurveyBot from '../components/SurveyBot.vue';
 import SignUpView from '@/views/SignUpView.vue'
 import SignInView from '@/views/SignInView.vue'
-// import MyPage from '@/components/MyPage.vue';
 import BankMapView from '@/views/BankMapView.vue';
 import MyPageView from '@/views/MyPageView.vue';
 import MyPage from '@/components/MyPage.vue';
@@ -107,7 +106,7 @@ const router = createRouter({
       component: PopupMenu 
     },
   { 
-    path: '/exchangeRates',
+    path: '/exchange',
     name: 'Exchange',
     component: ExchangeView,
   },

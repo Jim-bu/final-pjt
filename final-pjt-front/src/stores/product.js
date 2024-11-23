@@ -1,112 +1,88 @@
-import { ref } from 'vue';
-import { defineStore } from 'pinia';
-import axios from 'axios';
+import { ref } from "vue";
+import { defineStore } from "pinia";
+import axios from "axios";
 
-export const useProductStore = defineStore('product', () => {
-  const API_URL = 'http://127.0.0.1:8000'; // Django API URL
+const API_URL = "http://127.0.0.1:8000"; // Django API URL
 
-  const deposits = ref([]); // 예금 목록 저장
-  const savings = ref([]); // 적금 목록 저장
-  const selectedProduct = ref(null); // 선택된 상품 저장
+const axiosInstance = axios.create({
+  baseURL: API_URL,
+  headers: {
+    Authorization: `Token ${localStorage.getItem("token")}`,
+  },
+});
 
-  // 예금 데이터 저장 요청
-  const saveDeposits = function () {
-    const token = localStorage.getItem('token');
-    axios({
-      method: 'get',
-      url: `${API_URL}/bankings/deposit-fetch-data/`,
-      // headers: {
-      //   Authorization: `Token ${token}`,
-      // },
-    })
-      .then(() => {
-        console.log('예금 데이터가 서버에 저장되었습니다.');
-      })
-      .catch((err) => {
-        console.error('예금 데이터 저장 실패:', err.response?.data || err.message);
-      });
+export const useProductStore = defineStore("product", () => {
+  const deposits = ref([]);
+  const savings = ref([]);
+  const selectedProduct = ref(null);
+  const errorMessage = ref("");
+
+  const handleError = (err) => {
+    const message = err.response?.data || err.message || "알 수 없는 오류";
+    errorMessage.value = message;
+    console.error(message);
   };
 
-  // 적금 데이터 저장 요청
-  const saveSavings = function () {
-    const token = localStorage.getItem('token');
-    axios({
-      method: 'get',
-      url: `${API_URL}/bankings/saving-fetch-data/`,
-      // headers: {
-      //   Authorization: `Token ${token}`,
-      // },
-    })
-      .then(() => {
-        console.log('적금 데이터가 서버에 저장되었습니다.');
-      })
-      .catch((err) => {
-        console.error('적금 데이터 저장 실패:', err.response?.data || err.message);
-      });
+  const updateState = (stateRef, data) => {
+    stateRef.value = data;
   };
 
-  // 예금 데이터 가져오기
+  const saveDeposits = async function () {
+    try {
+      await axiosInstance.get("/bankings/deposit-fetch-data/");
+      console.log("예금 데이터가 서버에 저장되었습니다.");
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
+  const saveSavings = async function () {
+    try {
+      await axiosInstance.get("/bankings/saving-fetch-data/");
+      console.log("적금 데이터가 서버에 저장되었습니다.");
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
   const fetchDeposits = async function () {
-    const token = localStorage.getItem('token');
     try {
-      const response = await axios({
-        method: 'get',
-        url: `${API_URL}/bankings/deposit-get-products/`,
-        // headers: {
-        //   Authorization: `Token ${token}`,
-        // },
-      });
-      deposits.value = response.data;
+      const response = await axiosInstance.get("/bankings/deposit-get-products/");
+      updateState(deposits, response.data);
     } catch (err) {
-      console.error('예금 데이터 가져오기 실패:', err.response?.data || err.message);
-      deposits.value = []; // 오류 발생 시 초기화
+      handleError(err);
+      updateState(deposits, []);
     }
   };
 
-  // 적금 데이터 가져오기
   const fetchSavings = async function () {
-    const token = localStorage.getItem('token');
     try {
-      const response = await axios({
-        method: 'get',
-        url: `${API_URL}/bankings/saving-get-products/`,
-        // headers: {
-        //   Authorization: `Token ${token}`,
-        // },
-      });
-      savings.value = response.data;
+      const response = await axiosInstance.get("/bankings/saving-get-products/");
+      updateState(savings, response.data);
     } catch (err) {
-      console.error('적금 데이터 가져오기 실패:', err.response?.data || err.message);
-      savings.value = []; // 오류 발생 시 초기화
+      handleError(err);
+      updateState(savings, []);
     }
   };
 
-  // 특정 상품 조회
   const fetchProductById = async function (id, type) {
-    const token = localStorage.getItem('token');
     if (!id || !type) {
-      console.error('유효하지 않은 상품 ID 또는 타입:', { id, type });
+      console.error("유효하지 않은 상품 ID 또는 타입:", { id, type });
       selectedProduct.value = null;
       return;
     }
 
     const endpoint =
-      type === 'deposit'
-        ? `${API_URL}/bankings/deposit-get-products/${id}/`
-        : `${API_URL}/bankings/saving-get-products/${id}/`;
+      type === "deposit"
+        ? `/bankings/deposit-get-products/${id}/`
+        : `/bankings/saving-get-products/${id}/`;
 
     try {
-      const response = await axios({
-        method: 'get',
-        url: endpoint,
-        // headers: {
-        //   Authorization: `Token ${token}`,
-        // },
-      });
-      selectedProduct.value = response.data;
+      const response = await axiosInstance.get(endpoint);
+      updateState(selectedProduct, response.data);
     } catch (err) {
-      console.error(`상품 ID ${id} 가져오기 실패:`, err.response?.data || err.message);
-      selectedProduct.value = null;
+      handleError(err);
+      updateState(selectedProduct, null);
     }
   };
 
@@ -114,6 +90,7 @@ export const useProductStore = defineStore('product', () => {
     deposits,
     savings,
     selectedProduct,
+    errorMessage,
     saveDeposits,
     saveSavings,
     fetchDeposits,
