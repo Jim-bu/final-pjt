@@ -8,35 +8,60 @@
     <!-- 날짜, 세계 증시, 금융 뉴스 -->
     <div class="info-box">
       <p class="date">{{ currentDate }}</p>
-      <Market_NewsView />
-    </div>
+      <!-- 세계 증시 -->
+      <div class="stock-market">
+        <h3>세계 증시</h3>
+        <ul class="stock-list">
+          <li v-for="(stock, index) in stockData" :key="index">
+            <span>{{ stock.name }}:</span>
+            <span>{{ stock.price }}</span>
+            <span :class="['change-icon', stock.direction]">
+              <template v-if="stock.direction === 'up'">▲</template>
+              <template v-else-if="stock.direction === 'down'">▼</template>
+            </span>
+          </li>
+        </ul>
+      </div>
 
-    <!-- 환율 정보 바로가기 -->
-    <div class="buttons-box">
-      <button class="action-button" @click="goToPage('exchange')">환율 정보 바로가기</button>
+      <!-- 구분선 -->
+      <div class="divider"></div>
+
+      <!-- 금융 뉴스 -->
+      <div class="financial-news">
+        <h3>금융 뉴스</h3>
+        <ul class="news-list">
+          <li v-for="(news, index) in limitedNews" :key="index" class="news-item">
+            <h4 v-html="news.title"></h4>
+            <p>{{ truncateText(news.description, 15) }}</p>
+          </li>
+        </ul>
+        <button class="news-button" @click="goToPage('news')">더 많은 뉴스 보기</button>
+      </div>
     </div>
 
     <!-- 지도 섹션 -->
     <div class="map-box">
-        <Mapcopy />
+      <Mapcopy />
     </div>
   </div>
 </template>
 
-
-
 <script setup>
-import { ref } from "vue";
-import { useUserStore } from "@/stores/users";
-import Map from "@/components/Map.vue";
-import GoBack from "@/components/GoBack.vue";
-import Market_NewsView from "./Market_NewsView.vue"
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import Carousel from "@/components/Carousel.vue";
-import Mapcopy from "@/components/Mapcopy.vue"
+import Mapcopy from "@/components/Mapcopy.vue";
 
-const userStore = useUserStore();
+import { useNewsStore } from "@/stores/news";
 
+const { limitedNews, fetchNewsData } = useNewsStore();
 
+const router = useRouter();
+
+const currentDate = ref(""); // 초기화된 ref 선언
+const stockData = ref([]); // 초기화된 ref 선언
+
+// 날짜 포맷 함수
 const formatDate = (date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -44,13 +69,33 @@ const formatDate = (date) => {
   return `${year}.${month}.${day}`;
 };
 
-const currentDate = ref(formatDate(new Date())); // 현재 날짜를 포맷하여 초기화
-
-const goToPage = (page) => {
-  window.location.href = `/${page}`;
+// 데이터 로드 함수
+const fetchStockData = () => {
+  stockData.value = [
+    { name: "S&P 500", price: "4,500.00", direction: "up" },
+    { name: "NASDAQ", price: "13,200.00", direction: "down" },
+    { name: "KOSPI", price: "2,800.00", direction: "up" },
+  ];
 };
-</script>
 
+// 텍스트 자르기 함수
+const truncateText = (text, maxLength) => {
+  if (!text) return "";
+  return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
+};
+
+// 라우팅 함수
+const goToPage = (page) => {
+  router.push(`/${page}`);
+};
+
+// 컴포넌트 마운트 시 실행
+onMounted(() => {
+  currentDate.value = formatDate(new Date()); // 날짜 초기화
+  fetchStockData();
+  fetchNewsData();
+});
+</script>
 
 <style scoped>
 /* 메인 컨테이너 */
@@ -68,44 +113,75 @@ const goToPage = (page) => {
 .carousel-container {
   border-radius: 12px;
   overflow: hidden;
-  background-color: rgba(0, 0, 0, 0.8);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  margin-bottom: 20px;
 }
 
 /* 날짜, 증시, 금융 뉴스 박스 */
 .info-box {
-  background-color: rgba(240, 240, 240, 0.9); /* 밝은 회색 */
+  background-color: rgba(240, 240, 240, 0.9);
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .date {
   font-size: 18px;
   font-weight: bold;
   color: #333;
-  margin-bottom: 16px;
-  text-align: left;
 }
 
-/* 버튼 박스 */
-.buttons-box {
+/* 구분선 */
+.divider {
+  height: 1px;
+  background-color: #ccc; /* 구분선 색상 */
+  margin: 20px 0; /* 위아래 여백 */
+}
+
+/* 증시 및 뉴스 리스트 */
+.stock-list {
+  list-style: none;
+  padding: 0;
+}
+
+.stock-list li {
   display: flex;
-  justify-content: center;
+  align-items: center;
+  gap: 10px;
 }
 
-.action-button {
-  padding: 12px 24px;
-  font-size: 16px;
-  color: #fff;
-  background-color: #3a3a3a; /* 어두운 회색 */
+.change-icon {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.change-icon.up {
+  color: #3a774e; /* 초록색 */
+}
+
+.change-icon.down {
+  color: #d9534f; /* 빨간색 */
+}
+
+.news-list {
+  list-style: none;
+  padding: 0;
+}
+
+.news-button {
+  margin-top: 10px;
+  padding: 12px;
+  font-size: 14px;
+  background-color: #3a3a3a;
+  color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.action-button:hover {
+.news-button:hover {
   background-color: #2b2b2b;
 }
 
@@ -115,7 +191,5 @@ const goToPage = (page) => {
   padding: 16px;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  position: relative;
 }
-
 </style>

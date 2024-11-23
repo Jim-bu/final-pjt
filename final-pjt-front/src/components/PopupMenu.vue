@@ -7,7 +7,7 @@
         <ul>
           <li class="menu-item level-1"><button @click="navigateTo('/')">설문조사 하러 가기</button></li>
           <li class="menu-item level-1"><button @click="navigateTo('/community')">상품 평가하기</button></li>
-          <li class="menu-item level-1"><button @click="navigateTo('/bank-map')">근처 은행 찾기</button></li>
+          <li class="menu-item level-1"><button @click="navigateTo('/nearBank')">근처 은행 찾기</button></li>
         </ul>
       </div>
       <div class="menu-section">
@@ -20,7 +20,7 @@
       <div class="menu-section">
         <h4>금융상품</h4>
         <ul>
-          <li class="menu-item level-1"><button @click="navigateTo('/product-list')">상품 목록 확인하기</button></li>
+          <li class="menu-item level-1"><button @click="navigateTo('/productList')">상품 목록 확인하기</button></li>
           <li class="menu-item level-1"><button @click="navigateTo('/recommendation')">상품 추천 받기</button></li>
         </ul>
       </div>

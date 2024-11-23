@@ -1,6 +1,7 @@
 <template>
   <v-app>
     <NavBar />
+    <chatbotModal />
     <div class="centered-content">
       <router-view />
       <div class="content-padding"></div> <!-- 추가 여백 -->
@@ -12,6 +13,7 @@
 <script setup>
 import NavBar from './components/NavBar.vue';
 import Remote from './components/Remote.vue';
+import chatbotModal from './components/chatbotModal.vue';
 </script>
 
 <style>

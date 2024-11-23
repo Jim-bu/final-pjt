@@ -3,19 +3,15 @@
     cycle
     hide-delimiters
     show-arrows="hover"
-    height="400"
+    height="300"
+    class="custom-carousel"
   >
     <v-carousel-item v-for="(slide, index) in slides" :key="index">
       <div class="caro-item-text">
-        <p>{{ slide.description }}</p>
-        <div class="title">
-          <p>{{ slide.title }}</p>
-        </div>
+        <div class="title">{{ slide.title }}</div>
+        <p class="description">{{ slide.description }}</p>
         <v-btn
-          block
           rounded="xl"
-          size="x-large"
-          color="#1089FF"
           class="caro-item-btn"
           @click="slide.action"
         >
@@ -25,7 +21,6 @@
     </v-carousel-item>
   </v-carousel>
 </template>
-
 
 <script setup>
 const slides = [
@@ -56,49 +51,60 @@ const slides = [
 ];
 </script>
 
-
 <style scoped>
-/* 캐러샐 전체 컨테이너 */
-.v-carousel {
+/* 캐러셀 컨테이너 */
+.custom-carousel {
   border-radius: 12px;
   overflow: hidden;
-  background-color: #f5e5cc;
+  background-color: #f9f5f0;
+  height: 300px;
 }
 
+/* 캐러셀 아이템 텍스트 */
 .caro-item-text {
   flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
   text-align: left;
-  padding: 30px 40px; /* 왼쪽 위로 이동 */
-  line-height: 1.8; /* 줄 간격 확대 */
+  position: relative;
 }
 
-.caro-item-text .description {
-  margin-bottom: 20px;
-  font-size: 18px; /* 글씨 크기 확대 */
-  color: #555;
-}
-
-.caro-item-text .title {
-  font-size: 28px; /* 글씨 크기 확대 */
+.title {
+  font-size: 24px;
   font-weight: bold;
-  color: #333;
-  margin-bottom: 30px;
+  color: #333333;
+  margin-bottom: 16px;
 }
 
+.description {
+  font-size: 16px;
+  color: #555555;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+/* 캐러셀 버튼 */
 .caro-item-btn {
-  margin-top: 10px;
-  padding: 12px 24px;
-  font-size: 18px; /* 버튼 글씨 크기 확대 */
+  position: absolute;
+  bottom: 20px;
+  right: 25%; /* 오른쪽 25% 지점 */
+  transform: translateX(50%);
+  width: 250px; /* 버튼 고정 가로 길이 */
+  height: 100px; /* 버튼 고정 세로 길이 */
   background-color: #70533a; /* 갈색 계열 */
-  color: white;
-  border-radius: 24px;
-  cursor: pointer;
-  transition: background-color 0.3s;
+  color: #ffffff;
+  font-size: 20px; /* 글씨 크기 */
+  padding: 0; /* 기본 패딩 제거 */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: background-color 0.3s ease;
+  line-height: 40px; /* 버튼 세로 정렬 */
 }
 
 .caro-item-btn:hover {
-  background-color: #7a4e26; /* 호버 시 조금 더 어두운 갈색 */
+  background-color: #8c735b;
 }
-
-
 </style>

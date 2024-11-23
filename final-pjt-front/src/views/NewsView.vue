@@ -1,78 +1,91 @@
 <template>
-  <div class="news-container">
-    <h1>최신 금융 뉴스</h1>
-
-    <!-- 뉴스 카드 -->
-    <div class="news-card" v-for="news in newsList" :key="news.id">
-      <h2>{{ news.title }}</h2>
-      <p>{{ news.summary }}</p>
-      <a :href="news.link" target="_blank">자세히 보기</a>
+  <div class="news-page">
+    <h1>경제 뉴스</h1>
+    <div v-if="loading" class="loading">뉴스 데이터를 불러오는 중...</div>
+    <div v-if="error" class="error">{{ error }}</div>
+    <div v-else>
+      <ul class="news-list">
+        <li v-for="news in newsData" :key="news.id" class="news-item">
+          <h3 v-html="news.title"></h3>
+          <p>{{ news.description }}</p>
+          <div class="news-meta">
+            <span>발행일: {{ news.pub_date }}</span>
+            <a :href="news.originallink" target="_blank">원문 보기</a>
+          </div>
+        </li>
+      </ul>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { ref, onMounted } from "vue";
+import { useNewsStore } from "@/stores/news";
 
-const API_URL = 'http://127.0.0.1:8000/'; // API URL
-const token = localStorage.getItem('token'); // 토큰 가져오기
-const newsList = ref([]); // 뉴스 데이터 저장
+const { newsData, fetchNewsData, loading, error } = useNewsStore();
 
-const fetchNews = function () {
-  axios({
-    method: 'get',
-    url: `${API_URL}/news/`,
-    headers: {
-      Authorization: `Token ${token}`,
-    },
-  })
-    .then((res) => {
-      newsList.value = res.data;
-    })
-    .catch((err) => {
-      console.error('뉴스 데이터 가져오기 실패:', err.response?.data || err.message);
-    });
-};
-
+// 컴포넌트 마운트 시 데이터 로드
 onMounted(() => {
-  fetchNews();
+  fetchNewsData();
 });
 </script>
 
 <style scoped>
-.news-container {
+.news-page {
   max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
-}
-
-.news-card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
   padding: 16px;
+  font-family: Arial, sans-serif;
+  background-color: #f9f1dc; /* 연한 노랑 배경 */
+}
+
+h1 {
+  font-size: 28px;
+  color: #5a5a5a;
+  text-align: center;
   margin-bottom: 20px;
-  background-color: #f9f9f9;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.news-card h2 {
-  font-size: 18px;
-  margin-bottom: 8px;
+.news-list {
+  list-style: none;
+  padding: 0;
 }
 
-.news-card p {
+.news-item {
+  padding: 20px;
+  border: 1px solid #e5d4c0; /* 옅은 갈색 */
+  border-radius: 8px;
+  margin-bottom: 16px;
+  background-color: #d8e7d1; /* 연한 초록 배경 */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.news-item h3 {
+  font-size: 20px;
+  color: #70533a; /* 짙은 갈색 */
+  margin-bottom: 10px;
+}
+
+.news-item p {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.news-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 14px;
-  color: #555;
+  color: #666;
 }
 
-.news-card a {
-  font-size: 12px;
-  color: #3366cc;
+.news-meta a {
+  color: #3a774e; /* 초록 계열 */
   text-decoration: none;
 }
 
-.news-card a:hover {
+.news-meta a:hover {
   text-decoration: underline;
 }
 </style>

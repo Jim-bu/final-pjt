@@ -1,6 +1,6 @@
 <template>
   <div class="navbar-container">
-    <!-- 첫 번째 줄 -->
+    <!-- 상단 네비게이션 -->
     <div class="navbar-top">
       <div class="navbar-logo" @click="goToPage('Main')">WWW</div>
       <div class="navbar-user-actions">
@@ -21,7 +21,6 @@
       </div>
     </div>
 
-    <!-- 세 번째 줄 (Sticky) -->
     <div class="navbar-bottom">
       <button class="nav-btn" @click="goToPage('productList')">상품목록</button>
       <button class="nav-btn" @click="goToPage('productcompare')">상품비교</button>
@@ -31,32 +30,39 @@
 
     <!-- 하단 네비게이션 -->
     <div class="bottom-navbar">
-      <!-- 삼선 버튼 -->
+      <!-- 메뉴 버튼 -->
       <button class="bottom-btn" @click="openPopup">
         <v-icon>mdi-menu</v-icon>
       </button>
 
-      <!-- 채팅봇 버튼 -->
-      <button class="bottom-btn">
-        <v-icon>mdi-robot</v-icon>
-      </button>
       <!-- 뒤로 가기 버튼 -->
       <button class="bottom-btn" @click="router.back">
         <v-icon>mdi-arrow-left</v-icon>
       </button>
     </div>
+      <!-- 챗봇 버튼 -->
+    <button class="chatbot-button" @click="chatbotStore.openModal">
+      <v-icon>mdi-robot</v-icon>
+    </button>
 
   </div>
 </template>
 
-
 <script setup>
-import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
-import { useUserStore } from '@/stores/users';
+import { ref, computed } from "vue";
+import { useRouter } from "vue-router";
+import { useUserStore } from "@/stores/users";
+import { useChatbotStore } from "@/stores/chatbot";
+
+const chatbotStore = useChatbotStore();
+
+const openChatbot = () => {
+  chatbotStore.openModal();
+};
 
 const userStore = useUserStore();
 const router = useRouter();
+const chatbotModal = ref(null);
 
 const isLoggedIn = computed(() => userStore.isLogin);
 
@@ -65,12 +71,11 @@ const logout = () => {
 };
 
 const goToPage = (page) => {
-  // 페이지 이동
   router.push(`/${page}`);
 };
 
 const openPopup = () => {
-  router.push({ name: 'PopupMenu' }); // 팝업창으로 이동
+  router.push({ name: "PopupMenu" });
 };
 
 </script>
@@ -83,19 +88,32 @@ const openPopup = () => {
   margin: 0 auto;
   background-color: #85725d;
   color: #fff;
-  /* position: relative; */
   z-index: 1000;
 }
 
-/* 첫 번째 줄 */
+/* 상단 네비게이션 */
 .navbar-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px 20px;
-  background-color: #85725d; /* 변경된 배경색 */
-  color: #faf7f2; /* 변경된 글씨색 */
+  background-color: #85725d;
+  color: #faf7f2;
   border-bottom: 1px solid #756451;
+}
+
+.navbar-bottom {
+  position: sticky;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px 0;
+  background-color: #85725d; /* 변경된 배경색 */
+  color: #faf7f2;
+  border-top: 1px solid #756451;
+  position: sticky;
+  top: 0;
+  z-index: 1001;
 }
 
 .navbar-logo {
@@ -115,27 +133,13 @@ const openPopup = () => {
   text-decoration: underline;
 }
 
-/* 세 번째 줄 (Sticky) */
-.navbar-bottom {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding: 10px 0;
-  background-color: #85725d; /* 변경된 배경색 */
-  color: #faf7f2;
-  border-top: 1px solid #756451;
-  position: sticky;
-  top: 0;
-  z-index: 1001;
-}
-
 .custom-link {
-  text-decoration: none; /* 링크 기본 스타일 제거 */
+  text-decoration: none;
 }
 
 .custom-icon {
-  color: #ffffff; /* 원하는 색상 적용 */
-  font-size: 24px; /* 아이콘 크기 조정 가능 */
+  color: #ffffff;
+  font-size: 24px;
 }
 
 /* 하단 네비게이션 */
@@ -168,29 +172,24 @@ const openPopup = () => {
   text-decoration: underline;
 }
 
-/* 챗봇 버튼 컨테이너 */
-.chatbot-button-container {
-  position: absolute;
-  bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1003;
-}
-
-/* 챗봇 버튼 스타일 */
+/* 챗봇 버튼 */
 .chatbot-button {
+  position: fixed; /* 네비게이션 바와 독립적으로 고정 */
+  bottom: 5px; /* 화면 하단 기준 위치 */
+  left: 50%; /* 화면 중앙에 위치 */
+  transform: translateX(-50%); /* X축 중앙 정렬 */
   background-color: #336948;
   color: white;
   border: none;
   border-radius: 50%;
-  width: 80px; /* 버튼 크기 증가 */
-  height: 80px; /* 버튼 크기 증가 */
+  width: 64px;
+  height: 64px;
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3); /* 더 강한 그림자 */
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
   cursor: pointer;
-  transform: translateY(30%);
+  z-index: 1003;
 }
 
 .chatbot-button:hover {
