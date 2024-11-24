@@ -15,8 +15,7 @@ import PopupMenu from '@/components/PopupMenu.vue';
 import ExchangeView from '@/views/ExchangeView.vue';
 import NewsView from '@/views/NewsView.vue';
 import CommunityView from '@/views/CommunityView.vue';
-import UserUpdateView from '@/components/UserUpdateView.vue';
-
+import UserUpdateView from '@/views/UserUpdateView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

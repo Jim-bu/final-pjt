@@ -198,3 +198,18 @@ def review_comments(request, review_id):
         else:  # DELETE
             comment.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET'])
+def bank_products(request, bank_name):
+    # 해당 은행의 예금 상품 조회
+    deposit_products = DepositBaseList.objects.filter(kor_co_nm=bank_name)
+    deposit_serializer = DepositBaseListSerializer(deposit_products, many=True)
+    
+    # 해당 은행의 적금 상품 조회  
+    saving_products = SavingBaseList.objects.filter(kor_co_nm=bank_name)
+    saving_serializer = SavingBaseListSerializer(saving_products, many=True)
+    
+    return Response({
+        'deposit_products': deposit_serializer.data,
+        'saving_products': saving_serializer.data
+    })
