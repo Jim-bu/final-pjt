@@ -4,6 +4,21 @@ from finance_recommendation.settings import NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
 from .models import NewsList
 from .serializers import NewsListSerializer
 import requests
+import re
+
+
+def clean_text(text):
+    # HTML 태그 제거
+    text = re.sub(r'<[^>]+>', '', text)
+    # &quot;, &amp; 등의 HTML 엔터티 제거
+    text = re.sub(r'&quot;', '"', text)
+    text = re.sub(r'&amp;', '&', text)
+    text = re.sub(r'&lt;', '<', text)
+    text = re.sub(r'&gt;', '>', text)
+    text = re.sub(r'\"', '', text)
+    # 불필요한 공백 제거
+    text = re.sub(r'\s+', ' ', text)
+    return text.strip()
 
 
 @api_view(['GET'])
@@ -35,11 +50,11 @@ def news_fetch_data(request):
 
     for item in items:
         news_obj, created = NewsList.objects.update_or_create(
-            title=item["title"],
+            title=clean_text(item["title"]),
             defaults={
                 "originallink": item["originallink"],
                 "link": item["link"],
-                "description": item["description"],
+                "description": clean_text(item["description"]),
                 "pub_date": item["pubDate"],
             },
         )

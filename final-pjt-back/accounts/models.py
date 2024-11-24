@@ -11,6 +11,11 @@ class User(AbstractUser):
     deposit_period = models.PositiveIntegerField(null=True, blank=True, verbose_name="예금 희망 기간 (월)")    # 예금 희망 기간 (월)
     desire_amount_saving = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name="월 적금 희망 금액")    # 월 적금 희망 금액
     saving_period = models.PositiveIntegerField(null=True, blank=True, verbose_name="적금 희망 기간 (월)")    # 적금 희망 기간 (월)
-
+    profile_image = models.ImageField(
+        upload_to='profile_images/',
+        null=True,
+        blank=True,
+        verbose_name="프로필 이미지"
+    )
     def __str__(self):
         return self.username
