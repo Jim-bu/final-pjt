@@ -26,16 +26,15 @@ def user_info(request):
 
 
 @api_view(['PATCH'])
-@permission_classes([IsAuthenticated])  # 인증된 사용자만 접근 가능
+@permission_classes([IsAuthenticated])
 def user_update(request):
-    user = request.user    # 현재 로그인된 사용자
-
-    # 요청 데이터로 사용자 업데이트
-    serializer = UserSerializer(user, data=request.data, partial=True)  # partial=True는 선택적 업데이트를 허용
+    user = request.user
+    serializer = UserSerializer(user, data=request.data, partial=True, context={'request': request})
     if serializer.is_valid():
         serializer.save()
+        updated_user = UserSerializer(user, context={'request': request}).data
         return Response({
             "message": "User fields updated successfully.",
-            "updated_data": serializer.data
+            "updated_data": updated_user
         }, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
