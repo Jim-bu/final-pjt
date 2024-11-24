@@ -13,4 +13,6 @@ urlpatterns = [
     path('reviews/<int:review_id>/', views.review_detail, name='review_detail'),
     path('reviews/<int:review_id>/like/', views.review_like, name='review_like'),
     path('reviews/<int:review_id>/comments/', views.review_comments, name='review_comments'),
+    
+    path('bank-products/<str:bank_name>/', views.bank_products, name='bank_products'),
 ]
