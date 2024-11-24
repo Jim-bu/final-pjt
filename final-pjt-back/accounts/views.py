@@ -10,7 +10,7 @@ User = get_user_model()
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])  # 인증된 사용자만 접근 가능
+# @permission_classes([IsAuthenticated])  # 인증된 사용자만 접근 가능
 def user_all(request):
     users = User.objects.all()    # 모든 유저 가져오기
     serializer = UserSerializer(users, many=True)
