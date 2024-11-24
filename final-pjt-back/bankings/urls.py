@@ -8,4 +8,9 @@ urlpatterns = [
 
     path('saving-fetch-data/', views.saving_fetch_data, name='saving_fetch_data'),  # 적금 정보 저장
     path('saving-get-products/', views.saving_get_products, name='saving_get_products'),  # 적금 정보 조회
+
+    path('reviews/', views.product_reviews, name='product_reviews'),
+    path('reviews/<int:review_id>/', views.review_detail, name='review_detail'),
+    path('reviews/<int:review_id>/like/', views.review_like, name='review_like'),
+    path('reviews/<int:review_id>/comments/', views.review_comments, name='review_comments'),
 ]

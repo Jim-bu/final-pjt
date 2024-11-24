@@ -1,10 +1,12 @@
-import requests
+from django.shortcuts import get_object_or_404
+from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from finance_recommendation.settings import BANKINGS_KEY
-from .models import DepositBaseList, DepositOptionList, SavingBaseList, SavingOptionList
-from .serializers import DepositBaseListSerializer, SavingBaseListSerializer
-from rest_framework.permissions import AllowAny
+from .models import DepositBaseList, DepositOptionList, SavingBaseList, SavingOptionList, ProductReview, ReviewComment
+from .serializers import DepositBaseListSerializer, SavingBaseListSerializer, ProductReviewSerializer, ReviewCommentSerializer
+import requests
 
 
 API_URL_deposit = f"https://finlife.fss.or.kr/finlifeapi/depositProductsSearch.json?auth={BANKINGS_KEY}&topFinGrpNo=020000&pageNo=1"
@@ -129,3 +131,70 @@ def saving_get_products(request):
     serializer = SavingBaseListSerializer(products, many=True)
     return Response(serializer.data)
 
+
+@api_view(['GET', 'POST'])
+def product_reviews(request):
+    if request.method == 'GET':
+        reviews = ProductReview.objects.all().order_by('-created_at')
+        serializer = ProductReviewSerializer(reviews, many=True, context={'request': request})
+        return Response(serializer.data)
+    
+    elif request.method == 'POST':
+        serializer = ProductReviewSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['PUT', 'DELETE'])
+def review_detail(request, review_id):
+    review = get_object_or_404(ProductReview, pk=review_id)
+    
+    if request.user != review.user:
+        return Response(status=status.HTTP_403_FORBIDDEN)
+    
+    if request.method == 'PUT':
+        serializer = ProductReviewSerializer(review, data=request.data, context={'request': request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data)
+    
+    elif request.method == 'DELETE':
+        review.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['POST'])
+def review_like(request, review_id):
+    review = get_object_or_404(ProductReview, pk=review_id)
+    if request.user in review.likes.all():
+        review.likes.remove(request.user)
+    else:
+        review.likes.add(request.user)
+    return Response({'likes_count': review.like_count()})
+
+
+@api_view(['POST', 'PUT', 'DELETE'])
+def review_comments(request, review_id):
+    review = get_object_or_404(ProductReview, pk=review_id)
+    
+    if request.method == 'POST':
+        serializer = ReviewCommentSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save(user=request.user, review=review)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    elif request.method in ['PUT', 'DELETE']:
+        comment = get_object_or_404(ReviewComment, pk=request.data.get('comment_id'))
+        if request.user != comment.user:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        
+        if request.method == 'PUT':
+            serializer = ReviewCommentSerializer(comment, data=request.data, context={'request': request})
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response(serializer.data)
+        
+        else:  # DELETE
+            comment.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)

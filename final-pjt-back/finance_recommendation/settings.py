@@ -108,6 +108,8 @@ CORS_ALLOW_ALL_ORIGINS = True
 #     'http://localhost:5173',
 # ]
 
+CORS_ALLOW_CREDENTIALS = True
+
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://localhost:5173',
@@ -190,3 +192,6 @@ AUTH_USER_MODEL = 'accounts.User'
 ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = "none"  # 이메일 인증 필수
 ACCOUNT_AUTHENTICATION_METHOD = "username"  # 또는 "email"
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
