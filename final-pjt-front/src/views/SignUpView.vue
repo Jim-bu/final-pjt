@@ -99,7 +99,7 @@ const signUp = async () => {
 
     await userStore.signUp(payload);
     alert('회원가입이 완료되었습니다!');
-    await router.push('/'); // 회원가입 성공 후 홈으로 리디렉션
+    await router.push('/main'); // 회원가입 성공 후 홈으로 리디렉션
     clearForm();
   } catch (error) {
     alert('회원가입 중 문제가 발생했습니다. 다시 시도해 주세요.');

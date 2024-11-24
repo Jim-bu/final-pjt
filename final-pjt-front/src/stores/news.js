@@ -19,9 +19,6 @@ export const useNewsStore = () => {
       const response = await axios({
         method: "get",
         url: `${API_URL}/economics/news-get-data/`,
-        headers: {
-          Authorization: `Token ${localStorage.getItem("token")}`,
-        },
       });
 
       if (response.data && Array.isArray(response.data)) {
