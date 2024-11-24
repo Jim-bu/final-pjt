@@ -31,5 +31,4 @@ urlpatterns = [
     path('stocks/', include('stocks.urls')),
     path('economics/', include('economics.urls')),
     path('chats/', include('chats.urls')),
-    path("markets/", include("markets.urls")),
 ]
