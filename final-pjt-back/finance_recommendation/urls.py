@@ -34,4 +34,5 @@ urlpatterns = [
     path('stocks/', include('stocks.urls')),
     path('economics/', include('economics.urls')),
     path('chats/', include('chats.urls')),
+    path("markets/", include("markets.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
