@@ -22,7 +22,7 @@ export const useUserStore = defineStore('users', () => {
     
     isLoading.value = true;
     error.value = null;
-
+  
     try {
       const response = await axios({
         method: 'get',
@@ -32,9 +32,17 @@ export const useUserStore = defineStore('users', () => {
         },
       });
       
-      userInfo.value = response.data;
-      localStorage.setItem('userInfo', JSON.stringify(response.data));
+      // 응답 데이터를 가공하여 저장
+      const userData = response.data;
+      if (userData.profile_image) {
+        // 프로필 이미지 URL을 완전한 URL로 변환
+        userData.profile_image = `${API_URL}${userData.profile_image}`;
+      }
       
+      userInfo.value = userData;
+      localStorage.setItem('userInfo', JSON.stringify(userData));
+      
+      return userData;
     } catch (err) {
       console.error('사용자 정보 가져오기 실패:', err);
       error.value = err.response?.data || '사용자 정보를 가져오는데 실패했습니다.';
@@ -46,7 +54,7 @@ export const useUserStore = defineStore('users', () => {
       isLoading.value = false;
     }
   };
-
+    
   // 로그인
   const logIn = async function (payload) {
     const { username, password } = payload;
@@ -126,6 +134,36 @@ export const useUserStore = defineStore('users', () => {
     }
   };
 
+  const updateUserInfo = async function (updateData) {
+    if (!token.value) return;
+    
+    isLoading.value = true;
+    error.value = null;
+  
+    try {
+      const response = await axios({
+        method: 'PATCH',
+        url: `${API_URL}/accounts/user_update/`,
+        headers: {
+          Authorization: `Token ${token.value}`,
+          'Content-Type': 'multipart/form-data',
+        },
+        data: updateData,
+      });
+      
+      // 즉시 사용자 정보를 다시 가져오기
+      await getUserInfo();
+      
+      return response.data;
+    } catch (err) {
+      console.error('사용자 정보 업데이트 실패:', err);
+      error.value = err.response?.data || '사용자 정보 업데이트에 실패했습니다.';
+      throw err;
+    } finally {
+      isLoading.value = false;
+    }
+  };
+    
   // 컴포넌트 마운트 시 자동 로그인 처리
   onMounted(() => {
     if (token.value) {
@@ -143,5 +181,6 @@ export const useUserStore = defineStore('users', () => {
     signUp,
     logIn,
     logOut,
+    updateUserInfo,
   };
 });

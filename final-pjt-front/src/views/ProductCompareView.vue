@@ -169,9 +169,18 @@ const showChart = () => {
     return;
   }
 
-  const validProducts = selectedProducts.value.filter(
-    product => product.deposit_options && product.deposit_options.length > 0
-  );
+  let validProducts;
+  if (activeTab.value === 'deposit') {
+    // 예금 상품인 경우
+    validProducts = selectedProducts.value.filter(
+      product => product.deposit_options && product.deposit_options.length > 0
+    );
+  } else {
+    // 적금 상품인 경우
+    validProducts = selectedProducts.value.filter(
+      product => product.saving_options && product.saving_options.length > 0
+    );
+  }
 
   if (!validProducts.length) {
     alert('선택된 상품의 금리 정보가 없습니다.');
@@ -179,22 +188,31 @@ const showChart = () => {
   }
 
   // 기간별 금리 데이터 구성
-  const periods = [...new Set(validProducts.flatMap(product => 
-    product.deposit_options.map(option => option.save_trm)
-  ))].sort((a, b) => Number(a) - Number(b));
+  const periods = [...new Set(validProducts.flatMap(product => {
+    const options = activeTab.value === 'deposit' ? 
+      product.deposit_options : 
+      product.saving_options;
+    return options.map(option => option.save_trm);
+  }))].sort((a, b) => Number(a) - Number(b));
 
   labels.value = periods.map(period => `${period}개월`);
   
-  chartDatasets.value = validProducts.map((product, index) => ({
-    label: `${product.kor_co_nm} - ${product.fin_prdt_nm}`,
-    data: periods.map(period => {
-      const option = product.deposit_options.find(opt => opt.save_trm === period);
-      return option ? Number(option.intr_rate2) : 0;
-    }),
-    backgroundColor: `hsla(${index * 360 / validProducts.length}, 70%, 50%, 0.8)`,
-    borderColor: `hsla(${index * 360 / validProducts.length}, 70%, 40%, 1)`,
-    borderWidth: 1
-  }));
+  chartDatasets.value = validProducts.map((product, index) => {
+    const options = activeTab.value === 'deposit' ? 
+      product.deposit_options : 
+      product.saving_options;
+      
+    return {
+      label: `${product.kor_co_nm} - ${product.fin_prdt_nm}`,
+      data: periods.map(period => {
+        const option = options.find(opt => opt.save_trm === period);
+        return option ? Number(option.intr_rate2) : 0;
+      }),
+      backgroundColor: `hsla(${index * 360 / validProducts.length}, 70%, 50%, 0.8)`,
+      borderColor: `hsla(${index * 360 / validProducts.length}, 70%, 40%, 1)`,
+      borderWidth: 1
+    };
+  });
 
   showingChart.value = true;
 };

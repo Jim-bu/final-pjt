@@ -6,11 +6,18 @@
     <div v-else>
       <ul class="news-list">
         <li v-for="news in newsData" :key="news.id" class="news-item">
-          <h3 v-html="news.title"></h3>
+          <h3>{{ news.title }}</h3>
           <p>{{ news.description }}</p>
           <div class="news-meta">
-            <span>발행일: {{ news.pub_date }}</span>
-            <a :href="news.originallink" target="_blank">원문 보기</a>
+            <span>{{ formatDate(news.pub_date) }}</span>
+            <div class="news-links">
+              <a :href="news.originallink" target="_blank" rel="noopener noreferrer">
+                원문 보기
+              </a>
+              <a :href="news.link" target="_blank" rel="noopener noreferrer">
+                네이버 뉴스
+              </a>
+            </div>
           </div>
         </li>
       </ul>
@@ -24,11 +31,27 @@ import { useNewsStore } from "@/stores/news";
 
 const { newsData, fetchNewsData, loading, error } = useNewsStore();
 
-// 컴포넌트 마운트 시 데이터 로드
+const formatDate = (dateString) => {
+  try {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      weekday: 'long'
+    }).format(date);
+  } catch (error) {
+    return dateString;
+  }
+};
+
 onMounted(() => {
   fetchNewsData();
 });
 </script>
+
 
 <style scoped>
 .news-page {
@@ -87,5 +110,33 @@ h1 {
 
 .news-meta a:hover {
   text-decoration: underline;
+}
+
+.news-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e5d4c0;
+}
+
+.news-links {
+  display: flex;
+  gap: 15px;
+}
+
+.news-links a {
+  color: #3a774e;
+  text-decoration: none;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: rgba(58, 119, 78, 0.1);
+}
+
+.news-links a:hover {
+  background-color: rgba(58, 119, 78, 0.2);
+  text-decoration: none;
 }
 </style>
