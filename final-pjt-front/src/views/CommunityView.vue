@@ -1,15 +1,16 @@
 <template>
   <div class="community-page">
     <h1>상품 평가 게시판</h1>
+    <button @click="refreshReviews" class="refresh-button">새로고침</button>
 
     <!-- 의견 작성 폼 -->
-    <div class="opinion-form">
-      <h2>상품 평가 작성</h2>
+    <div v-if="isLoggedIn" class="opinion-form">
+      <h2>{{ isEditing ? '상품 평가 수정' : '상품 평가 작성' }}</h2>
 
       <!-- 상품 유형 선택 -->
       <div class="product-type">
         <label>상품 유형:</label>
-        <select v-model="newOpinion.productType" class="product-select">
+        <select v-model="reviewForm.productType" class="product-select" :disabled="isEditing">
           <option value="deposit">예금</option>
           <option value="saving">적금</option>
         </select>
@@ -18,10 +19,10 @@
       <!-- 상품 선택 -->
       <div class="product-select-container">
         <label>상품 선택:</label>
-        <select v-model="newOpinion.productName" class="product-select">
+        <select v-model="reviewForm.productName" class="product-select" :disabled="isEditing">
           <option disabled value="">상품을 선택하세요</option>
           <option
-            v-for="product in getProductList(newOpinion.productType)"
+            v-for="product in getProductList(reviewForm.productType)"
             :key="product.fin_prdt_cd"
             :value="product.fin_prdt_nm"
           >
@@ -31,13 +32,13 @@
       </div>
 
       <input
-        v-model="newOpinion.title"
+        v-model="reviewForm.title"
         class="input-title"
         type="text"
         placeholder="제목을 입력하세요"
       />
       <textarea
-        v-model="newOpinion.content"
+        v-model="reviewForm.content"
         class="textarea-content"
         placeholder="상품에 대한 의견을 작성하세요"
       ></textarea>
@@ -50,54 +51,101 @@
             v-for="star in 5"
             :key="star"
             class="star"
-            :class="{ filled: star <= newOpinion.rating }"
-            @click="newOpinion.rating = star"
+            :class="{ filled: star <= reviewForm.rating }"
+            @click="reviewForm.rating = star"
           >
             ★
           </span>
         </div>
       </div>
 
-      <button class="submit-button" @click="addOpinion">작성하기</button>
+      <div class="form-buttons">
+        <button class="submit-button" @click="handleSubmit">
+          {{ isEditing ? '수정하기' : '작성하기' }}
+        </button>
+        <button v-if="isEditing" class="cancel-button" @click="cancelEdit">
+          취소
+        </button>
+      </div>
+    </div>
+
+    <div v-else class="login-message">
+      <p>리뷰를 작성하려면 로그인이 필요합니다.</p>
+      <router-link to="/login" class="login-link">로그인하기</router-link>
     </div>
 
     <!-- 게시물 목록 -->
     <div class="opinion-list">
       <h2>사용자 평가</h2>
       <div
-        v-for="(opinion, index) in opinions"
-        :key="index"
+        v-for="review in communityStore.reviews"
+        :key="review.id"
         class="opinion-card"
       >
-        <h3>{{ opinion.title }}</h3>
-        <p class="product-info">
-          {{ opinion.productType === "deposit" ? "예금" : "적금" }} - {{ opinion.productName }}
-        </p>
-        <p class="content">{{ opinion.content }}</p>
-        <p class="rating">별점: {{ opinion.rating }}점</p>
-        <button class="comment-toggle" @click="toggleComments(index)">
-          댓글 보기
-        </button>
+        <div class="review-header">
+          <h3>{{ review.title }}</h3>
+          <div class="review-meta">
+            <span class="author">작성자: {{ review.username }}</span>
+            <span class="date">{{ formatDate(review.created_at) }}</span>
+            <span v-if="review.updated_at !== review.created_at" class="edited">(수정됨)</span>
+          </div>
+        </div>
 
-        <!-- 댓글 목록 -->
-        <div v-if="opinion.showComments" class="comment-section">
-          <ul class="comment-list">
-            <li
-              v-for="(comment, idx) in opinion.comments"
-              :key="idx"
-              class="comment-item"
-            >
-              {{ comment }}
-            </li>
-          </ul>
-          <div class="comment-form">
-            <input
-              v-model="newComments[index]"
-              class="input-comment"
-              type="text"
-              placeholder="댓글을 입력하세요"
-            />
-            <button @click="addComment(index)">댓글 추가</button>
+        <p class="product-info">
+          {{ review.product_type === "deposit" ? "예금" : "적금" }} - {{ review.product_name }}
+        </p>
+        <p class="content">{{ review.content }}</p>
+        
+        <div class="rating-like-container">
+          <p class="rating">
+            <span v-for="star in 5" :key="star" class="star" 
+                  :class="{ filled: star <= review.rating }">★</span>
+          </p>
+          <button 
+            v-if="isLoggedIn"
+            class="like-button" 
+            :class="{ liked: review.is_liked }"
+            @click="handleLike(review.id)"
+          >
+            ♥ {{ review.like_count }}
+          </button>
+        </div>
+
+        <!-- 리뷰 수정/삭제 버튼 -->
+        <div v-if="review.is_owner" class="review-actions">
+          <button class="edit-button" @click="startEdit(review)">수정</button>
+          <button class="delete-button" @click="handleDelete(review.id)">삭제</button>
+        </div>
+
+        <!-- 댓글 섹션 -->
+        <div class="comment-section">
+          <button class="comment-toggle" @click="toggleComments(review)">
+            댓글 {{ review.comments.length }}개
+          </button>
+
+          <div v-if="review.showComments" class="comments-container">
+            <div v-for="comment in review.comments" :key="comment.id" class="comment">
+              <div class="comment-content">
+                <span class="comment-author">{{ comment.username }}</span>
+                <p>{{ comment.content }}</p>
+              </div>
+              <div v-if="comment.is_owner" class="comment-actions">
+                <button @click="editComment(review.id, comment)">수정</button>
+                <button @click="deleteComment(review.id, comment.id)">삭제</button>
+              </div>
+            </div>
+
+            <!-- 댓글 작성 폼 -->
+            <div v-if="isLoggedIn" class="comment-form">
+              <input
+                v-model="commentForms[review.id]"
+                class="input-comment"
+                type="text"
+                placeholder="댓글을 입력하세요"
+                @keyup.enter="addComment(review.id)"
+              />
+              <button @click="addComment(review.id)">댓글 작성</button>
+            </div>
           </div>
         </div>
       </div>
@@ -106,86 +154,284 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { useProductStore } from "../stores/product";
+import { ref, onMounted, computed } from 'vue'
+import { useProductStore } from '../stores/product'
+import { useCommunityStore } from '../stores/community'
+import { useUserStore } from '../stores/users'
+import { storeToRefs } from 'pinia'
 
-// 상품 데이터 가져오기
-const productStore = useProductStore();
-const deposits = ref([]);
-const savings = ref([]);
+const productStore = useProductStore()
+const communityStore = useCommunityStore()
+const userStore = useUserStore()
 
-// 의견 및 댓글 관련 상태
-const opinions = ref([]);
-const newOpinion = ref({
-  productType: "deposit",
-  productName: "",
-  title: "",
-  content: "",
-  rating: 0,
-  comments: [],
-  showComments: false,
-});
-const newComments = ref({});
+// 상태 관리
+const isLoggedIn = computed(() => userStore.isLogin)
+const isEditing = ref(false)
+const editingReviewId = ref(null)
+const commentForms = ref({})
+
+// 리뷰 폼 초기 상태
+const initialReviewForm = {
+  productType: 'deposit',
+  productName: '',
+  title: '',
+  content: '',
+  rating: 0
+}
+
+const reviewForm = ref({ ...initialReviewForm })
 
 // 데이터 로드
 onMounted(async () => {
-  await productStore.saveDeposits();
-  await productStore.saveSavings();
-  await productStore.fetchDeposits();
-  await productStore.fetchSavings();
-  deposits.value = productStore.deposits;
-  savings.value = productStore.savings;
-});
+  if (!productStore.deposits.length) {
+    await productStore.saveDeposits()
+    await productStore.fetchDeposits()
+  }
+  if (!productStore.savings.length) {
+    await productStore.saveSavings()
+    await productStore.fetchSavings()
+  }
+  await communityStore.fetchReviews()
+})
 
-// 상품 목록 가져오기
+// 메소드
+const refreshReviews = async () => {
+  await communityStore.fetchReviews()
+}
+
 const getProductList = (type) => {
-  return type === "deposit" ? deposits.value : savings.value;
-};
+  return type === 'deposit' ? productStore.deposits : productStore.savings
+}
 
-// 의견 추가
-const addOpinion = () => {
-  if (
-    !newOpinion.value.title ||
-    !newOpinion.value.content ||
-    !newOpinion.value.productName
-  ) {
-    alert("모든 필드를 입력하세요.");
-    return;
+const handleSubmit = async () => {
+  try {
+    if (!validateForm()) return
+
+    const reviewData = {
+      product_type: reviewForm.value.productType,
+      product_name: reviewForm.value.productName,
+      title: reviewForm.value.title,
+      content: reviewForm.value.content,
+      rating: reviewForm.value.rating
+    }
+
+    if (isEditing.value) {
+      await communityStore.updateReview(editingReviewId.value, reviewData)
+    } else {
+      await communityStore.createReview(reviewData)
+    }
+
+    resetForm()
+  } catch (error) {
+    console.error('리뷰 제출 실패:', error)
+    alert('리뷰 제출에 실패했습니다.')
   }
-  opinions.value.push({
-    ...newOpinion.value,
-    comments: [],
-    showComments: false,
-  });
-  newOpinion.value = {
-    productType: "deposit",
-    productName: "",
-    title: "",
-    content: "",
-    rating: 0,
-    comments: [],
-    showComments: false,
-  };
-};
+}
 
-// 댓글 토글
-const toggleComments = (index) => {
-  opinions.value[index].showComments = !opinions.value[index].showComments;
-};
-
-// 댓글 추가
-const addComment = (index) => {
-  if (!newComments.value[index]?.trim()) {
-    alert("댓글을 입력하세요.");
-    return;
+const validateForm = () => {
+  if (!reviewForm.value.productName ||
+      !reviewForm.value.title ||
+      !reviewForm.value.content ||
+      !reviewForm.value.rating) {
+    alert('모든 필드를 입력해주세요.')
+    return false
   }
-  opinions.value[index].comments.push(newComments.value[index]);
-  newComments.value[index] = "";
-};
+  return true
+}
+
+const resetForm = () => {
+  reviewForm.value = { ...initialReviewForm }
+  isEditing.value = false
+  editingReviewId.value = null
+}
+
+const startEdit = (review) => {
+  isEditing.value = true
+  editingReviewId.value = review.id
+  reviewForm.value = {
+    productType: review.product_type,
+    productName: review.product_name,
+    title: review.title,
+    content: review.content,
+    rating: review.rating
+  }
+}
+
+const cancelEdit = () => {
+  resetForm()
+}
+
+const handleDelete = async (reviewId) => {
+  if (!confirm('정말 삭제하시겠습니까?')) return
+  try {
+    await communityStore.deleteReview(reviewId)
+  } catch (error) {
+    console.error('리뷰 삭제 실패:', error)
+    alert('리뷰 삭제에 실패했습니다.')
+  }
+}
+
+const handleLike = async (reviewId) => {
+  try {
+    await communityStore.toggleLike(reviewId)
+  } catch (error) {
+    console.error('좋아요 처리 실패:', error)
+  }
+}
+
+const toggleComments = (review) => {
+  review.showComments = !review.showComments
+}
+
+const addComment = async (reviewId) => {
+  const content = commentForms.value[reviewId]?.trim()
+  if (!content) return
+
+  try {
+    await communityStore.addComment(reviewId, content)
+    commentForms.value[reviewId] = ''
+  } catch (error) {
+    console.error('댓글 작성 실패:', error)
+    alert('댓글 작성에 실패했습니다.')
+  }
+}
+
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
 </script>
 
 <style scoped>
-/* 기존 스타일 유지 및 일부 개선 */
+.community-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.refresh-button {
+  margin-bottom: 20px;
+  padding: 8px 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.opinion-card {
+  background: white;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.review-meta {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.rating-like-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.like-button {
+  padding: 5px 10px;
+  border: 1px solid #ff4081;
+  background: white;
+  color: #ff4081;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.like-button.liked {
+  background: #ff4081;
+  color: white;
+}
+
+.review-actions {
+  margin-top: 10px;
+}
+
+.edit-button, .delete-button {
+  margin-right: 10px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-button {
+  background: #2196F3;
+  color: white;
+}
+
+.delete-button {
+  background: #f44336;
+  color: white;
+}
+
+.comment-section {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.comment {
+  padding: 10px;
+  margin: 5px 0;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.comment-author {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.login-message {
+  text-align: center;
+  padding: 20px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.login-link {
+  color: #2196F3;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.comment-form {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.input-comment {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
 .community-page {
   max-width: 800px;
   margin: 0 auto;

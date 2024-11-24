@@ -23,6 +23,15 @@ onMounted(() => {
         회원 정보 관리
       </RouterLink>
       <p>|</p>
+      <div class="button-container">
+        <RouterLink 
+          :to="{ name: 'userUpdate' }" 
+          class="edit-button"
+        >
+          회원 정보 수정
+        </RouterLink>
+      </div>
+
       <!-- <RouterLink :to="{ name: 'productManage', params: { username: userStore.userInfo?.username }}" exact-active-class="active">가입 상품 관리</RouterLink>
       <p>|</p>
       <RouterLink :to="{ name: 'productRecommend', params: { username: userStore.userInfo?.username }}" exact-active-class="active">상품 추천 받기</RouterLink> -->

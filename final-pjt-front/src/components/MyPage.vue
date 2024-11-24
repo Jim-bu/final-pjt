@@ -1,9 +1,11 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
+import { useUserStore } from '@/stores/users';
 import axios from "axios";
 
 const API_URL = "http://127.0.0.1:8000/accounts/user_info/";
 const userFields = ref(null);
+const userStore = useUserStore();
 
 // 금액 포맷팅 함수
 const formatCurrency = (value) => {
@@ -23,38 +25,36 @@ const formatPeriod = (months) => {
 
 // 사용자 정보 가져오기
 const fetchUserFields = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.error("로그인 토큰이 없습니다.");
-      return;
-    }
-
-    const response = await axios.get(API_URL, {
-      headers: {
-        Authorization: `Token ${token}`,
-      },
-    });
-    
-    const data = response.data;
-    // Django 모델의 Decimal 필드를 적절히 처리
-    userFields.value = {
-      id: data.id,
-      username: data.username,
-      email: data.email,
-      name: data.name,
-      age: data.age,
-      money: data.money ? parseFloat(data.money) : null,
-      salary: data.salary ? parseFloat(data.salary) : null,
-      desire_amount_deposit: data.desire_amount_deposit ? parseFloat(data.desire_amount_deposit) : null,
-      deposit_period: data.deposit_period,
-      desire_amount_saving: data.desire_amount_saving ? parseFloat(data.desire_amount_saving) : null,
-      saving_period: data.saving_period,
-    };
-  } catch (error) {
-    console.error("사용자 정보 가져오기 실패:", error.response?.data || error);
-    userFields.value = null;
+  await userStore.getUserInfo();
+  if (userStore.userInfo) {
+    userFields.value = { ...userStore.userInfo };
   }
+};
+
+// 프로필 이미지 URL을 동적으로 계산
+const profileImageUrl = computed(() => {
+  if (userStore.userInfo?.profile_image) {
+    return userStore.userInfo.profile_image;
+  }
+  return null;
+});
+
+// 사용자 정보가 변경될 때마다 userFields 업데이트
+watch(() => userStore.userInfo, (newUserInfo) => {
+  if (newUserInfo) {
+    userFields.value = { ...newUserInfo };
+  }
+}, { deep: true });
+
+// 이미지 로드 실패 시 기본 이미지로 대체
+const handleImageError = (e) => {
+  e.target.src = '/default-profile.png';
+};
+
+// 이니셜 가져오기 함수
+const getInitials = (name) => {
+  if (!name) return '?';
+  return name.charAt(0).toUpperCase();
 };
 
 onMounted(() => {
@@ -67,7 +67,16 @@ onMounted(() => {
     <!-- 프로필 헤더 -->
     <div class="profile-header" v-if="userFields">
       <div class="profile-image">
-        <!-- <img src="@/assets/profile-placeholder.png" alt="프로필 이미지" /> -->
+        <template v-if="profileImageUrl">
+          <img 
+            :src="profileImageUrl"
+            :alt="`${userFields.name || userFields.username}의 프로필`"
+            @error="handleImageError"
+          />
+        </template>
+        <div v-else class="no-image">
+          <span>{{ getInitials(userFields.name || userFields.username) }}</span>
+        </div>
       </div>
       <h1 class="profile-title">{{ userFields.name || userFields.username }}님의 프로필</h1>
     </div>
@@ -242,5 +251,32 @@ onMounted(() => {
   .info-content {
     grid-template-columns: 1fr;
   }
+}
+
+.profile-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #e4c089;
+  background-color: #f5f5f5;
+}
+
+.profile-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.no-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e4c089;
+  color: white;
+  font-size: 2rem;
+  font-weight: bold;
 }
 </style>
