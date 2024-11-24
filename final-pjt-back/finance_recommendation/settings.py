@@ -52,7 +52,6 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'accounts',
-    'articles',
     'bankings',
     'currencies',
     'surveys',
