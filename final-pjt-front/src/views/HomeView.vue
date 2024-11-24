@@ -14,10 +14,11 @@
         <ul class="stock-list">
           <li v-for="(stock, index) in stockData" :key="index">
             <span>{{ stock.name }}:</span>
-            <span>{{ stock.price }}</span>
+            <span>{{ stock.price || "N/A" }}</span>
             <span :class="['change-icon', stock.direction]">
-              <template v-if="stock.direction === 'up'">▲</template>
-              <template v-else-if="stock.direction === 'down'">▼</template>
+              <template v-if="stock.direction === 'up'">▲ {{ stock.change }}</template>
+              <template v-else-if="stock.direction === 'down'">▼ {{ stock.change }}</template>
+              <template v-else>시장 닫힘</template>
             </span>
           </li>
         </ul>
@@ -48,6 +49,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import axios from "axios"; 
 import { useRouter } from "vue-router";
 import Carousel from "@/components/Carousel.vue";
 import Mapcopy from "@/components/Mapcopy.vue";
@@ -59,7 +61,47 @@ const { limitedNews, fetchNewsData } = useNewsStore();
 const router = useRouter();
 
 const currentDate = ref(""); // 초기화된 ref 선언
-const stockData = ref([]); // 초기화된 ref 선언
+const stockData = ref([
+  { name: "Loading...", price: "-", direction: "up" }
+]);
+
+const API_URL = "http://127.0.0.1:8000";
+
+const fetchStockData = async () => {
+  try {
+    const response = await axios({
+      method: "get",
+      url: `${API_URL}/markets/indices/`,
+      headers: {
+        Authorization: `Token ${localStorage.getItem("token")}`, // 필요 시 인증 헤더
+      },
+    });
+
+    // 데이터가 비어 있거나 잘못된 경우 대비
+    if (!response.data || Object.keys(response.data).length === 0) {
+      console.error("증시 데이터가 없습니다.");
+      stockData.value = [{ name: "No data", price: "-", direction: "down" }];
+      return;
+    }
+
+    // 정상 데이터 매핑
+    stockData.value = Object.keys(response.data).map((key) => {
+      const item = response.data[key];
+      return {
+        name: key,
+        price: item.current_price
+          ? item.current_price.toLocaleString("en-US", { minimumFractionDigits: 2 })
+          : "-",
+        direction: item.percentage_change > 0 ? "up" : "down",
+      };
+    });
+  } catch (err) {
+    console.error("증시 데이터를 가져오는 중 오류 발생:", err);
+    stockData.value = [{ name: "Error", price: "-", direction: "down" }];
+  }
+};
+
+
 
 // 날짜 포맷 함수
 const formatDate = (date) => {
@@ -67,15 +109,6 @@ const formatDate = (date) => {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}.${month}.${day}`;
-};
-
-// 데이터 로드 함수
-const fetchStockData = () => {
-  stockData.value = [
-    { name: "S&P 500", price: "4,500.00", direction: "up" },
-    { name: "NASDAQ", price: "13,200.00", direction: "down" },
-    { name: "KOSPI", price: "2,800.00", direction: "up" },
-  ];
 };
 
 // 텍스트 자르기 함수
