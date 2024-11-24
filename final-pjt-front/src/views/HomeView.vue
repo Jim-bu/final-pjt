@@ -72,35 +72,35 @@ const fetchStockData = async () => {
     const response = await axios({
       method: "get",
       url: `${API_URL}/markets/indices/`,
-      headers: {
-        Authorization: `Token ${localStorage.getItem("token")}`, // 필요 시 인증 헤더
-      },
     });
 
-    // 데이터가 비어 있거나 잘못된 경우 대비
-    if (!response.data || Object.keys(response.data).length === 0) {
-      console.error("증시 데이터가 없습니다.");
-      stockData.value = [{ name: "No data", price: "-", direction: "down" }];
-      return;
-    }
-
-    // 정상 데이터 매핑
     stockData.value = Object.keys(response.data).map((key) => {
       const item = response.data[key];
       return {
         name: key,
         price: item.current_price
           ? item.current_price.toLocaleString("en-US", { minimumFractionDigits: 2 })
-          : "-",
+          : "-", // 값이 없으면 "-" 표시
         direction: item.percentage_change > 0 ? "up" : "down",
+        change: item.percentage_change
+          ? `${item.percentage_change.toFixed(2)}%`
+          : "-", // 값이 없으면 "-" 표시
+        status: item.status || "unknown", // 데이터 상태 (sample 또는 real)
       };
     });
   } catch (err) {
     console.error("증시 데이터를 가져오는 중 오류 발생:", err);
-    stockData.value = [{ name: "Error", price: "-", direction: "down" }];
+    console.log("대체 데이터가 표시됩니다: 모든 지수");
+    // 샘플 데이터 표시
+    stockData.value = [
+      { name: "S&P 500", price: "4,500.23", direction: "up", change: "0.85%" },
+      { name: "Nasdaq", price: "15,000.45", direction: "down", change: "-0.32%" },
+      { name: "Dow Jones", price: "35,200.00", direction: "up", change: "1.20%" },
+      { name: "Kospi", price: "2,500.00", direction: "down", change: "-0.50%" },
+    ];
+    
   }
 };
-
 
 
 // 날짜 포맷 함수

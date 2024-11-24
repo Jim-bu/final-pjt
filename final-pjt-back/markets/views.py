@@ -19,10 +19,7 @@ def get_indices_data(request):
             # 최근 유효 데이터 찾기
             if hist.empty:
                 print(f"No data available for {name}")
-                data[name] = {
-                    "current_price": "N/A",
-                    "percentage_change": 0.0
-                }
+                data[name] = {"current_price": "N/A", "percentage_change": 0.0}
                 continue
 
             last_valid_row = hist.iloc[-1]  # 마지막 유효 데이터

@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useUserStore } from '@/stores/users'
+import LoadingScreen from '@/components/LoadingScreen.vue'
 import HomeView from '../views/HomeView.vue';
 import RecommendationView from '@/views/RecommendationView.vue';
 import SurveyBot from '../components/SurveyBot.vue';
@@ -19,12 +20,17 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: '/',
+      name: 'LoadingScreen',
+      component: LoadingScreen, // 처음 로딩 화면
+    },
+    {
       path: '/main',
       name: 'Main',
       component: HomeView,
     },
     {
-      path: '/',
+      path: '/survey',
       name: 'Survey',
       component: SurveyBot,
     },
