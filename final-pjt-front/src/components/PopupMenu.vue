@@ -5,7 +5,7 @@
       <div class="menu-section">
         <h4>My-</h4>
         <ul>
-          <li class="menu-item level-1"><button @click="navigateTo('/')">설문조사 하러 가기</button></li>
+          <li class="menu-item level-1"><button @click="navigateTo('/survey')">설문조사 하러 가기</button></li>
           <li class="menu-item level-1"><button @click="navigateTo('/community')">상품 평가하기</button></li>
           <li class="menu-item level-1"><button @click="navigateTo('/nearBank')">근처 은행 찾기</button></li>
         </ul>
