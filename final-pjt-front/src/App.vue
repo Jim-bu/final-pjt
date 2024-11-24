@@ -1,19 +1,33 @@
 <template>
   <v-app>
-    <NavBar />
-    <chatbotModal />
+    <NavBar v-if="!isLoadingScreen" />
+    <chatbotModal v-if="!isLoadingScreen" />
     <div class="centered-content">
       <router-view />
-      <div class="content-padding"></div> <!-- 추가 여백 -->
+      <div class="content-padding"></div>
     </div>
     <Remote />
   </v-app>
 </template>
 
 <script setup>
+import { ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import NavBar from './components/NavBar.vue';
 import Remote from './components/Remote.vue';
 import chatbotModal from './components/chatbotModal.vue';
+
+const route = useRoute(); // 현재 라우트를 가져옵니다.
+const isLoadingScreen = ref(false);
+
+// 라우트 이름을 감지하여 NavBar 표시 여부를 업데이트
+watch(
+  () => route.name,
+  (newRouteName) => {
+    isLoadingScreen.value = newRouteName === 'LoadingScreen';
+  },
+  { immediate: true } // 컴포넌트가 로드될 때 바로 실행
+);
 </script>
 
 <style>
