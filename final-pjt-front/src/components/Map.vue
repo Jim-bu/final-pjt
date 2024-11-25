@@ -125,9 +125,15 @@ const displayMarkers = (places: any[]) => {
     });
 
     kakao.maps.event.addListener(marker, "click", () => {
-      infowindow.value.setContent(
-        `<div style="padding:5px;">${place.place_name}</div>`
-      );
+      infowindow.value.setContent(`
+        <div style="padding:5px;">
+          <strong>${place.place_name}</strong><br>
+          도로명 주소: ${place.road_address_name || "정보 없음"}<br>
+          지번 주소: ${place.address_name || "정보 없음"}<br>
+          전화번호: ${place.phone || "정보 없음"}<br>
+          <a href="${place.place_url}" target="_blank">자세히 보기</a>
+        </div>
+      `);
       infowindow.value.open(map.value, marker);
     });
 
