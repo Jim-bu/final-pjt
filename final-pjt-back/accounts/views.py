@@ -18,11 +18,14 @@ def user_all(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])  # 인증된 사용자만 접근 가능
+@permission_classes([IsAuthenticated])
 def user_info(request):
-    user = request.user    # 현재 로그인된 사용자
-    serializer = UserSerializer(user)
-    return Response(serializer.data, status=200)
+    user = request.user
+    serializer = UserSerializer(user, context={'request': request})
+    return Response({
+        "user_info": serializer.data,
+        "message": "User information retrieved successfully."
+    }, status=status.HTTP_200_OK)
 
 
 @api_view(['PATCH'])

@@ -12,7 +12,6 @@ def get_indices_data(request):
     data = {}
     try:
         for name, ticker in indices.items():
-            print(f"Fetching data for {name}: {ticker}")
             stock = yf.Ticker(ticker)
             hist = stock.history(period="5d")  # 최근 5일 데이터 가져오기
             # 최근 유효 데이터 찾기
@@ -31,6 +30,7 @@ def get_indices_data(request):
                 "current_price": round(current_price, 2),
                 "percentage_change": round(percentage_change, 2)
             }
+        print("Market Data fetched and saved successfully.")
 
     except Exception as e:
         print(f"Error occurred: {e}")

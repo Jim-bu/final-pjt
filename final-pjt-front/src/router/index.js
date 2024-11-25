@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { useUserStore } from '@/stores/users'
 import LoadingScreen from '@/components/LoadingScreen.vue'
 import HomeView from '../views/HomeView.vue';
-import RecommendationView from '@/views/RecommendationView.vue';
 import SurveyBot from '../components/SurveyBot.vue';
 import SignUpView from '@/views/SignUpView.vue'
 import SignInView from '@/views/SignInView.vue'
@@ -16,6 +15,8 @@ import ExchangeView from '@/views/ExchangeView.vue';
 import NewsView from '@/views/NewsView.vue';
 import CommunityView from '@/views/CommunityView.vue';
 import UserUpdateView from '@/views/UserUpdateView.vue';
+import RecommendationView from '@/views/RecommendationView.vue';
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
