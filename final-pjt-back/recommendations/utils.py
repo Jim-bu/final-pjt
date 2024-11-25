@@ -3,9 +3,8 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 from bankings.models import DepositBaseList, SavingBaseList
+from django.core.cache import cache
 
-
-from sklearn.preprocessing import OneHotEncoder
 
 class RecommenderSystem:
     def __init__(self):
@@ -17,12 +16,13 @@ class RecommenderSystem:
         if "recommended_product" not in survey_data.columns:
             raise ValueError("Missing 'recommended_product' in training data.")
 
+        # Features and Labels
         X = self.encoder.fit_transform(survey_data.drop("recommended_product", axis=1))
         y = self.label_encoder.fit_transform(survey_data["recommended_product"])
         self.model.fit(X, y)
 
     def predict(self, new_survey, product_data):
-        X_new = self.encoder.transform(new_survey)  # handle_unknown="ignore" 덕분에 예외 없음
+        X_new = self.encoder.transform(new_survey)
         predictions = self.model.predict_proba(X_new)
 
         if predictions.shape[1] == 0:
@@ -40,7 +40,6 @@ class RecommenderSystem:
             raise ValueError("No valid recommendations were found.")
 
         return recommended_products[0]
-
 
 
 def generate_dummy_survey_data(num_samples=100):
@@ -69,9 +68,6 @@ def generate_dummy_survey_data(num_samples=100):
 
 
 def generate_training_data(survey_data, product_data):
-    """
-    설문 데이터를 상품 데이터와 매핑하여 학습 데이터를 생성합니다.
-    """
     if "fin_prdt_nm" not in product_data.columns:
         raise ValueError("Missing 'fin_prdt_nm' in product data.")
 
@@ -81,14 +77,13 @@ def generate_training_data(survey_data, product_data):
 
 
 def fetch_products():
-    """
-    Bankings 앱의 예금 및 적금 데이터를 가져옵니다.
-    """
-    # 예금 상품 가져오기
     deposit_products = DepositBaseList.objects.prefetch_related('deposit_options').all()
     deposit_data = [
         {
-            "intr_rate2": max([opt.intr_rate2 or 0 for opt in product.deposit_options.all()]),
+            "fin_prdt_cd": product.fin_prdt_cd,
+            "intr_rate2": max(
+                [(opt.intr_rate2 or opt.intr_rate or 0) for opt in product.deposit_options.all()]
+            ),
             "fin_prdt_nm": product.fin_prdt_nm,
             "kor_co_nm": product.kor_co_nm,
         }
@@ -96,11 +91,13 @@ def fetch_products():
     ]
     deposit_df = pd.DataFrame(deposit_data)
 
-    # 적금 상품 가져오기
     saving_products = SavingBaseList.objects.prefetch_related('saving_options').all()
     saving_data = [
         {
-            "intr_rate2": max([opt.intr_rate2 or 0 for opt in product.saving_options.all()]),
+            "fin_prdt_cd": product.fin_prdt_cd,
+            "intr_rate2": max(
+                [(opt.intr_rate2 or opt.intr_rate or 0) for opt in product.saving_options.all()]
+            ),
             "fin_prdt_nm": product.fin_prdt_nm,
             "kor_co_nm": product.kor_co_nm,
         }
@@ -108,4 +105,16 @@ def fetch_products():
     ]
     saving_df = pd.DataFrame(saving_data)
 
-    return deposit_df, saving_df
+    return deposit_df, saving_df 
+
+
+def get_or_create_model(user_id, survey_data, product_data):
+    cache_key = f"user_recommendation_model_{user_id}"
+    recommender = cache.get(cache_key)
+
+    if not recommender:
+        recommender = RecommenderSystem()
+        recommender.train(survey_data, product_data)
+        cache.set(cache_key, recommender, timeout=60 * 60 * 24)  # Cache for 24 hours
+
+    return recommender
