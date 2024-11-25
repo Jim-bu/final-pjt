@@ -14,8 +14,7 @@ def get_indices_data(request):
         for name, ticker in indices.items():
             print(f"Fetching data for {name}: {ticker}")
             stock = yf.Ticker(ticker)
-            hist = stock.history(period="7d")  # 최근 7일 데이터 가져오기
-
+            hist = stock.history(period="5d")  # 최근 5일 데이터 가져오기
             # 최근 유효 데이터 찾기
             if hist.empty:
                 print(f"No data available for {name}")
