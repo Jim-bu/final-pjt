@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from .utils import (
-    RecommenderSystem,
+    get_or_create_model,
     generate_dummy_survey_data,
     generate_training_data,
     fetch_products
@@ -29,10 +29,10 @@ def map_survey_responses(survey_data):
 @permission_classes([IsAuthenticated])
 def get_recommendations(request):
     try:
+        user_id = request.user.id
+
         # 최신 설문 데이터 가져오기
         user_survey = UserSurvey.objects.filter(user=request.user).latest('created_at')
-
-        # 설문 데이터를 변환
         user_survey_data = {
             "age_group": user_survey.age_group,
             "income_source": user_survey.income_source,
@@ -43,22 +43,25 @@ def get_recommendations(request):
             "financial_products": user_survey.financial_products,
             "preferred_bank": user_survey.preferred_bank,
         }
-        
+
         user_survey_data = map_survey_responses(user_survey_data)
         logger.debug(f"User survey data: {user_survey_data}")
         user_survey_df = pd.DataFrame([user_survey_data])
 
-        # 더미 데이터 생성 및 모델 학습
+        # 상품 데이터 및 학습
+        deposit_df, saving_df = fetch_products()
         survey_data = generate_dummy_survey_data()
-        deposit_df, saving_df = fetch_products()  # 상품 데이터 가져오기
-        training_data = generate_training_data(survey_data, pd.concat([deposit_df, saving_df]))
-        recommender = RecommenderSystem()
-        recommender.train(training_data, pd.concat([deposit_df, saving_df]))
+        product_data = pd.concat([deposit_df, saving_df])
+        training_data = generate_training_data(survey_data, product_data)
+
+        # 추천 모델 가져오기 또는 생성
+        recommender = get_or_create_model(user_id, training_data, product_data)
 
         # 예금 상품 추천
         deposit_recommendations = recommender.predict(user_survey_df, deposit_df)
         serialized_deposits = [
             {
+                "fin_prdt_cd": row["fin_prdt_cd"],
                 "fin_prdt_nm": row["fin_prdt_nm"],
                 "kor_co_nm": row["kor_co_nm"],
                 "intr_rate2": row["intr_rate2"]
@@ -71,6 +74,7 @@ def get_recommendations(request):
         saving_recommendations = recommender.predict(user_survey_df, saving_df)
         serialized_savings = [
             {
+                "fin_prdt_cd": row["fin_prdt_cd"],
                 "fin_prdt_nm": row["fin_prdt_nm"],
                 "kor_co_nm": row["kor_co_nm"],
                 "intr_rate2": row["intr_rate2"]
@@ -85,8 +89,7 @@ def get_recommendations(request):
         }, status=200)
 
     except UserSurvey.DoesNotExist:
-        logger.error("No survey data found for the user.")
-        return JsonResponse({"error": "No survey data found for the user. Please complete the survey."}, status=404)
+        return JsonResponse({"error": "No survey data found for the user."}, status=404)
     except Exception as e:
         logger.error(f"Error in get_recommendations: {e}")
         return JsonResponse({"error": str(e)}, status=400)
