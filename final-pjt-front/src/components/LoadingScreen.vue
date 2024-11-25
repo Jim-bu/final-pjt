@@ -13,7 +13,7 @@
   // 로고를 일정 시간 표시한 후 메인 페이지로 이동
   onMounted(() => {
     setTimeout(() => {
-      router.push('/survey'); // '/main'으로 전환
+      router.push('/Main'); // '/main'으로 전환
     }, 2500); // 4초 동안 로고 표시
   });
   </script>

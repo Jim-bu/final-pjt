@@ -10,11 +10,12 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'username', 'name', 'age', 'money', 'salary',
+            'id', 'username', 'name', 'email', 'age', 'money', 'salary',
             'desire_amount_deposit', 'deposit_period',
             'desire_amount_saving', 'saving_period', 'profile_image'
         ]  # 필요한 필드만 포함
 
+        
     def to_representation(self, instance):
         data = super().to_representation(instance)
         request = self.context.get('request')

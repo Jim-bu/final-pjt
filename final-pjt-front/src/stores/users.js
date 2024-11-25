@@ -33,12 +33,7 @@ export const useUserStore = defineStore('users', () => {
       });
       
       // 응답 데이터를 가공하여 저장
-      const userData = response.data;
-      if (userData.profile_image) {
-        // 프로필 이미지 URL을 완전한 URL로 변환
-        userData.profile_image = `${API_URL}${userData.profile_image}`;
-      }
-      
+      const userData = response.data.user_info; // email 포함
       userInfo.value = userData;
       localStorage.setItem('userInfo', JSON.stringify(userData));
       
@@ -46,14 +41,13 @@ export const useUserStore = defineStore('users', () => {
     } catch (err) {
       console.error('사용자 정보 가져오기 실패:', err);
       error.value = err.response?.data || '사용자 정보를 가져오는데 실패했습니다.';
-      
       if (err.response?.status === 401) {
         logOut();
       }
     } finally {
       isLoading.value = false;
     }
-  };
+};
     
   // 로그인
   const logIn = async function (payload) {

@@ -6,9 +6,9 @@ const API_URL = "http://127.0.0.1:8000"; // Django API URL
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
-  headers: {
-    Authorization: `Token ${localStorage.getItem("token")}`,
-  },
+  // headers: {
+  //   Authorization: `Token ${localStorage.getItem("token")}`,
+  // },
 });
 
 export const useProductStore = defineStore("product", () => {
