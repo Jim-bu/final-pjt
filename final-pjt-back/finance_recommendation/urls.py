@@ -29,7 +29,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('bankings/', include('bankings.urls')),
     path('currencies/', include('currencies.urls')),
-    path('api/', include('surveys.urls')),  # 경로 수정 예정
+    path('surveys/', include('surveys.urls')),
     path('stocks/', include('stocks.urls')),
     path('economics/', include('economics.urls')),
     path('chats/', include('chats.urls')),

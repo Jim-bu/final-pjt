@@ -40,7 +40,7 @@ NAVER_CLIENT_ID = 'Www2nwUTz3LsUOuKExyf'
 NAVER_CLIENT_SECRET = 'aKTPHptBFv'
 
 # OPENAI GPT API 키
-CHATS_KEY = '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'
+CHATS_KEY = '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'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -54,11 +54,11 @@ INSTALLED_APPS = [
     'accounts',
     'bankings',
     'currencies',
-    'surveys',
     'stocks',
     'economics',
     'chats',
     'markets',
+    'surveys',
     'rest_framework',
     'rest_framework.authtoken',
     'dj_rest_auth',
