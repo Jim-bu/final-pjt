@@ -1,79 +1,90 @@
 <template>
   <div class="survey-container">
-    <div v-if="!surveyCompleted" class="survey-bot">
-      <div class="survey-header">
-        <h2>맞춤형 금융 상품 추천을 위한 설문조사</h2>
-        <p>{{ currentSection.title }}</p>
+    <div v-if="!userStore.isLogin">
+      <div class="overlay"></div>
+      <div class="login-popup">
+        <h2>로그인이 필요합니다</h2>
+        <p>추천 목록과 설문조사를 이용하려면 로그인 또는 회원가입이 필요합니다.</p>
+        <button @click="goToLogin">로그인</button>
+        <button @click="goToSignup">회원가입</button>
       </div>
-
-      <div class="survey-progress">
-        <div class="progress-bar">
-          <div :style="{ width: `${progressPercentage}%` }" class="progress-fill"></div>
+    </div>
+    <div v-else>
+      <div v-if="!surveyCompleted" class="survey-bot">
+        <div class="survey-header">
+          <h2>맞춤형 금융 상품 추천을 위한 설문조사</h2>
+          <p>{{ currentSection.title }}</p>
         </div>
-        <span>{{ currentQuestionIndex + 1 }} / {{ totalQuestions }}</span>
-      </div>
 
-      <div class="survey-content">
-        <div class="question-container">
-          <h3>{{ currentQuestion.text }}</h3>
-          <div class="options-container">
+        <div class="survey-progress">
+          <div class="progress-bar">
+            <div :style="{ width: `${progressPercentage}%` }" class="progress-fill"></div>
+          </div>
+          <span>{{ currentQuestionIndex + 1 }} / {{ totalQuestions }}</span>
+        </div>
+
+        <div class="survey-content">
+          <div class="question-container">
+            <h3>{{ currentQuestion.text }}</h3>
+            <div class="options-container">
+              <button
+                v-for="option in currentQuestion.options"
+                :key="option.value"
+                :class="['option-button', { selected: selectedOption === option.value }]"
+                @click="selectOption(option.value)"
+              >
+                {{ option.label }}
+              </button>
+            </div>
+          </div>
+
+          <div class="navigation-buttons">
             <button
-              v-for="option in currentQuestion.options"
-              :key="option.value"
-              :class="['option-button', { selected: selectedOption === option.value }]"
-              @click="selectOption(option.value)"
+              v-if="currentQuestionIndex > 0"
+              @click="previousQuestion"
+              class="nav-button"
             >
-              {{ option.label }}
+              이전
+            </button>
+            <button
+              v-if="currentQuestionIndex < totalQuestions - 1"
+              @click="nextQuestion"
+              class="nav-button"
+              :disabled="!selectedOption"
+            >
+              다음
+            </button>
+            <button
+              v-else
+              @click="submitSurvey"
+              class="submit-button"
+              :disabled="!selectedOption"
+            >
+              제출하기
             </button>
           </div>
         </div>
-
-        <div class="navigation-buttons">
-          <button 
-            v-if="currentQuestionIndex > 0" 
-            @click="previousQuestion" 
-            class="nav-button"
-          >
-            이전
-          </button>
-          <button 
-            v-if="currentQuestionIndex < totalQuestions - 1" 
-            @click="nextQuestion" 
-            class="nav-button"
-            :disabled="!selectedOption"
-          >
-            다음
-          </button>
-          <button 
-            v-else 
-            @click="submitSurvey" 
-            class="submit-button"
-            :disabled="!selectedOption"
-          >
-            제출하기
-          </button>
-        </div>
       </div>
-    </div>
 
-    <div v-else class="survey-completion">
-      <h2>설문이 완료되었습니다!</h2>
-      <p>맞춤형 금융 상품 추천 결과를 확인하시겠습니까?</p>
-      <button @click="goToRecommendations" class="recommendation-button">
-        추천 결과 보기
-      </button>
+      <div v-else class="survey-completion">
+        <h2>설문이 완료되었습니다!</h2>
+        <p>맞춤형 금융 상품 추천 결과를 확인하시겠습니까?</p>
+        <button @click="goToRecommendations" class="recommendation-button">
+          추천 결과 보기
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/users'
 import axios from 'axios'
 
-const router = useRouter()
 const userStore = useUserStore()
+const router = useRouter()
 
 // 상태 관리
 const currentQuestionIndex = ref(0)
@@ -81,7 +92,7 @@ const selectedOption = ref(null)
 const surveyResponses = ref({})
 const surveyCompleted = ref(false)
 
-// 설문 섹션과 질문 정의
+// 설문 데이터 정의
 const surveyStructure = {
   basicInfo: {
     title: '기본 정보',
@@ -94,7 +105,7 @@ const surveyStructure = {
           { value: '30대', label: '30대' },
           { value: '40대', label: '40대' },
           { value: '50대', label: '50대' },
-          { value: '60대_이상', label: '60대 이상' }
+          { value: '60대 이상', label: '60대 이상' } // 학습 데이터에 맞게 수정
         ]
       },
       {
@@ -111,9 +122,9 @@ const surveyStructure = {
         id: 'asset_size',
         text: '자산 규모를 선택해주세요.',
         options: [
-          { value: '1000만원_이하', label: '1000만원 이하' },
-          { value: '1000만원_5000만원', label: '1000만원 ~ 5000만원' },
-          { value: '5000만원_이상', label: '5000만원 이상' }
+          { value: '1000만원 이하', label: '1000만원 이하' }, // 학습 데이터에 맞게 수정
+          { value: '1000만원 ~ 5000만원', label: '1000만원 ~ 5000만원' },
+          { value: '5000만원 이상', label: '5000만원 이상' }
         ]
       }
     ]
@@ -125,10 +136,10 @@ const surveyStructure = {
         id: 'financial_purpose',
         text: '금융 상품을 이용하는 주요 목적은 무엇인가요?',
         options: [
-          { value: '단기_수익', label: '단기 수익' },
-          { value: '장기_자산관리', label: '장기 자산 관리' },
-          { value: '리스크_회피', label: '리스크 회피' },
-          { value: '재산_증식', label: '재산 증식' }
+          { value: '단기 수익', label: '단기 수익' }, // 학습 데이터에 맞게 수정
+          { value: '장기 자산 관리', label: '장기 자산 관리' },
+          { value: '리스크 회피', label: '리스크 회피' },
+          { value: '재산 증식', label: '재산 증식' }
         ]
       },
       {
@@ -138,7 +149,7 @@ const surveyStructure = {
           { value: '이율', label: '이율' },
           { value: '안정성', label: '안정성' },
           { value: '유동성', label: '유동성' },
-          { value: '브랜드_신뢰도', label: '브랜드 신뢰도' }
+          { value: '브랜드 신뢰도', label: '브랜드 신뢰도' }
         ]
       },
       {
@@ -183,10 +194,8 @@ const surveyStructure = {
 // Computed Properties
 const currentSection = computed(() => {
   const sections = Object.values(surveyStructure)
-  const totalQuestions = sections.reduce((acc, section) => 
-    acc + section.questions.length, 0)
   let questionCount = 0
-  
+
   for (const section of sections) {
     questionCount += section.questions.length
     if (currentQuestionIndex.value < questionCount) {
@@ -199,7 +208,7 @@ const currentSection = computed(() => {
 const currentQuestion = computed(() => {
   const sections = Object.values(surveyStructure)
   let questionIndex = currentQuestionIndex.value
-  
+
   for (const section of sections) {
     if (questionIndex < section.questions.length) {
       return section.questions[questionIndex]
@@ -209,8 +218,10 @@ const currentQuestion = computed(() => {
 })
 
 const totalQuestions = computed(() => {
-  return Object.values(surveyStructure).reduce((acc, section) => 
-    acc + section.questions.length, 0)
+  return Object.values(surveyStructure).reduce(
+    (acc, section) => acc + section.questions.length,
+    0
+  )
 })
 
 const progressPercentage = computed(() => {
@@ -226,48 +237,66 @@ const selectOption = (option) => {
 const nextQuestion = () => {
   if (selectedOption.value) {
     currentQuestionIndex.value++
-    selectedOption.value = surveyResponses.value[currentQuestion.value?.id] || null
+    selectedOption.value =
+      surveyResponses.value[currentQuestion.value?.id] || null
   }
 }
 
 const previousQuestion = () => {
   if (currentQuestionIndex.value > 0) {
     currentQuestionIndex.value--
-    selectedOption.value = surveyResponses.value[currentQuestion.value.id] || null
+    selectedOption.value =
+      surveyResponses.value[currentQuestion.value.id] || null
   }
 }
 
-const submitSurvey = async () => {
-  if (!userStore.isLogin) {
-    alert('로그인이 필요한 서비스입니다.')
-    router.push('/login')
-    return
-  }
+const submitSurvey = async (surveyData) => {
+  axios({
+  method: "post",
+  url: `${import.meta.env.VITE_API_URL}/surveys/submit-survey/`,
+  data: {
+    age_group: surveyResponses.value.age_group, // 설문 응답 데이터 매핑
+    income_source: surveyResponses.value.income_source,
+    asset_size: surveyResponses.value.asset_size,
+    financial_purpose: surveyResponses.value.financial_purpose,
+    important_factor: surveyResponses.value.important_factor,
+    recent_investment: surveyResponses.value.recent_investment,
+    financial_products: surveyResponses.value.financial_products,
+    preferred_bank: surveyResponses.value.preferred_bank,
+  },
+  headers: {
+    Authorization: `Token ${localStorage.getItem("token")}`,
+    "Content-Type": "application/json", // JSON 형식 지정
+  },
+})
+  .then(() => {
+    alert("설문이 성공적으로 저장되었습니다.");
+    userStore.surveyCompleted = true;
+    localStorage.setItem("surveyCompleted", "true");
 
-  try {
-    const response = await axios.post(
-      'http://127.0.0.1:8000/surveys/submit-survey/',
-      surveyResponses.value,
-      { headers: { Authorization: `Token ${userStore.token}` } }
-    )
-    surveyCompleted.value = true
-  } catch (error) {
-    console.error('설문 제출 실패:', error)
-    alert('설문 제출 중 오류가 발생했습니다. 다시 시도해주세요.')
-  }
-}
+      // 추천 페이지로 이동
+    router.push("/recommendation");
+  })
+  .catch((error) => {
+    console.error("설문 제출 실패:", error);
+    alert("설문 데이터를 저장하는 중 문제가 발생했습니다. 다시 시도해주세요.");
+  });
+};
+
 
 const goToRecommendations = () => {
   router.push('/recommendation')
 }
 
-// 컴포넌트 마운트 시 초기화
-onMounted(() => {
-  if (!userStore.isLogin) {
-    router.push('/login')
-  }
-})
+const goToLogin = () => {
+  router.push('/login')
+}
+
+const goToSignup = () => {
+  router.push('/signup')
+}
 </script>
+
 
 <style scoped>
 .survey-container {
@@ -369,4 +398,53 @@ onMounted(() => {
 .recommendation-button:hover {
   background-color: #45a049;
 }
+
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 999;
+}
+
+/* 팝업 창 */
+.login-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  text-align: center;
+}
+
+.login-popup h2 {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.login-popup button {
+  margin: 10px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #85725d;
+  color: white;
+  font-size: 1rem;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.login-popup button:hover {
+  background-color: #85725d;
+  transform: scale(1.05);
+}
+
 </style>

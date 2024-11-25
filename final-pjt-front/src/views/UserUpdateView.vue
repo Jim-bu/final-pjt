@@ -1,5 +1,5 @@
 <template>
-  <div class="update-page">
+  <div v-if="userStore.isLogin" class="update-page">
     <h2>회원 정보 수정</h2>
     <div v-if="loading" class="loading">
       데이터를 불러오는 중...
@@ -7,35 +7,34 @@
     <form v-else @submit.prevent="handleSubmit" class="update-form">
       <!-- 프로필 이미지 섹션 -->
       <div class="profile-image-section">
-  <div class="current-image">
-    <template v-if="previewImage || userStore.userInfo?.profile_image">
-      <img 
-        :src="previewImage || userStore.userInfo.profile_image"
-        :alt="userStore.userInfo?.username"
-        @error="handleImageError"
-      />
-    </template>
-    <div v-else class="no-image">
-      <span>{{ getInitials(userStore.userInfo?.name || userStore.userInfo?.username) }}</span>
-    </div>
-  </div>
-  <div class="image-upload">
-    <label for="profile-image" class="upload-label">
-      프로필 이미지 변경
-    </label>
-    <input
-      type="file"
-      id="profile-image"
-      accept="image/*"
-      @change="handleImageChange"
-      class="file-input"
-    />
-  </div>
-  <p class="image-help-text" v-if="selectedFile">
-    선택된 파일: {{ selectedFile.name }}
-  </p>
-</div>
-
+        <div class="current-image">
+          <template v-if="previewImage || userStore.userInfo?.profile_image">
+            <img 
+              :src="previewImage || userStore.userInfo.profile_image"
+              :alt="userStore.userInfo?.username"
+              @error="handleImageError"
+            />
+          </template>
+          <div v-else class="no-image">
+            <span>{{ getInitials(userStore.userInfo?.name || userStore.userInfo?.username) }}</span>
+          </div>
+        </div>
+        <div class="image-upload">
+          <label for="profile-image" class="upload-label">
+            프로필 이미지 변경
+          </label>
+          <input
+            type="file"
+            id="profile-image"
+            accept="image/*"
+            @change="handleImageChange"
+            class="file-input"
+          />
+        </div>
+        <p class="image-help-text" v-if="selectedFile">
+          선택된 파일: {{ selectedFile.name }}
+        </p>
+      </div>
 
       <!-- 기본 정보 섹션 -->
       <div class="form-section">
@@ -148,10 +147,16 @@
       </div>
     </form>
   </div>
+  <div v-else class="loading-container">
+    <div class="loading-message">
+      <p>로그인이 필요한 서비스입니다</p>
+      <RouterLink :to="{ name: 'login' }" class="login-link">로그인 하기</RouterLink>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useUserStore } from '@/stores/users';
 import { useRouter } from 'vue-router';
 
@@ -160,6 +165,26 @@ const router = useRouter();
 const loading = ref(false);
 const previewImage = ref(null);
 const selectedFile = ref(null);
+
+onMounted(() => {
+  checkAuth();
+  loadUserData();
+});
+
+const checkAuth = () => {
+  if (!userStore.isLogin) {
+    router.push({
+      name: 'login',
+      query: { redirect: router.currentRoute.value.fullPath }
+    });
+  }
+};
+
+watch(() => userStore.isLogin, (newValue) => {
+  if (!newValue) {
+    checkAuth();
+  }
+});
 
 // 프로필 이미지 URL 계산
 const profileImageUrl = computed(() => {
@@ -178,7 +203,7 @@ const handleImageError = (e) => {
 const handleImageChange = (event) => {
   const file = event.target.files[0];
   if (file) {
-    // 파일 크기 체크 (예: 5MB)
+    // 파일 크기 체크 (5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert('파일 크기는 5MB를 초과할 수 없습니다.');
       event.target.value = '';
@@ -242,9 +267,7 @@ const handleSubmit = async () => {
     });
 
     await userStore.updateUserInfo(formDataToSend);
-    // 업데이트 후 사용자 정보 갱신
     await userStore.getUserInfo();
-    
     alert('회원 정보가 성공적으로 수정되었습니다.');
     router.push({ 
       name: 'myPage', 
@@ -260,7 +283,6 @@ const handleSubmit = async () => {
 
 // 취소 처리
 const handleCancel = () => {
-  // 미리보기 이미지와 선택된 파일 정리
   if (previewImage.value) {
     URL.revokeObjectURL(previewImage.value);
   }
@@ -269,26 +291,22 @@ const handleCancel = () => {
   router.back();
 };
 
-// 컴포넌트 언마운트 시 미리보기 URL 정리
-onBeforeUnmount(() => {
-  if (previewImage.value) {
-    URL.revokeObjectURL(previewImage.value);
-  }
-
-// 컴포넌트 마운트 시
-onMounted(() => {
-  loadUserData();
-});
-});
-
 // 이니셜 가져오기 함수
 const getInitials = (name) => {
   if (!name) return '?';
   return name.charAt(0).toUpperCase();
 };
+
+// 컴포넌트 언마운트 시 미리보기 URL 정리
+onBeforeUnmount(() => {
+  if (previewImage.value) {
+    URL.revokeObjectURL(previewImage.value);
+  }
+});
 </script>
 
 <style scoped>
+/* 기존 스타일 유지 */
 .update-page {
   max-width: 800px;
   margin: 0 auto;
@@ -298,6 +316,43 @@ const getInitials = (name) => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+}
+
+.loading-message {
+  text-align: center;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.loading-message p {
+  color: #666;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.login-link {
+  display: inline-block;
+  padding: 0.5rem 1.5rem;
+  background-color: #e4c089;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.login-link:hover {
+  background-color: #d8b679;
+}
+
+/* 나머지 기존 스타일 유지 */
 .update-form {
   display: flex;
   flex-direction: column;
@@ -311,30 +366,8 @@ const getInitials = (name) => {
   border: 1px solid #e9ecef;
 }
 
-h2 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 30px;
-  font-size: 24px;
-}
-
-h3 {
-  color: #495057;
-  margin-bottom: 20px;
-  font-size: 18px;
-  border-bottom: 2px solid #e9ecef;
-  padding-bottom: 10px;
-}
-
 .form-group {
   margin-bottom: 15px;
-}
-
-label {
-  display: block;
-  margin-bottom: 8px;
-  color: #495057;
-  font-weight: 500;
 }
 
 .form-input {
@@ -343,13 +376,6 @@ label {
   border: 1px solid #ced4da;
   border-radius: 4px;
   font-size: 16px;
-  transition: border-color 0.2s;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #3a774e;
-  box-shadow: 0 0 0 2px rgba(58, 119, 78, 0.1);
 }
 
 .button-group {
@@ -369,17 +395,12 @@ label {
 }
 
 .submit-button {
-  background-color: #3a774e;
+  background-color: #e4c089;
   color: white;
 }
 
 .submit-button:hover {
-  background-color: #2d5d3d;
-}
-
-.submit-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
+  background-color: #d8b679;
 }
 
 .cancel-button {
@@ -391,25 +412,13 @@ label {
   background-color: #5a6268;
 }
 
-.loading {
+/* 프로필 이미지 관련 스타일 */
+.profile-image-section {
   text-align: center;
+  margin-bottom: 24px;
   padding: 20px;
-  color: #666;
-}
-
-@media (max-width: 768px) {
-  .update-page {
-    max-width: 100%;
-    padding: 15px;
-  }
-
-  .button-group {
-    flex-direction: column;
-  }
-
-  .submit-button, .cancel-button {
-    width: 100%;
-  }
+  background-color: #f8f9fa;
+  border-radius: 8px;
 }
 
 .current-image {
@@ -438,14 +447,6 @@ label {
   color: white;
   font-size: 2rem;
   font-weight: bold;
-}
-
-.profile-image-section {
-  text-align: center;
-  margin-bottom: 24px;
-  padding: 20px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
 }
 
 .image-upload {

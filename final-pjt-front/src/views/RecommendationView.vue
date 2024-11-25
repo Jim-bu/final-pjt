@@ -1,18 +1,15 @@
 <template>
   <div class="recommendation-page">
-    <!-- 로그인되지 않았을 때 -->
-    <div v-if="!userStore.isLogin">
-      <div class="overlay"></div>
-      <div class="login-popup">
-        <h2>로그인이 필요합니다</h2>
-        <p>추천 목록을 보려면 로그인 또는 회원가입이 필요합니다.</p>
-        <button @click="goToLogin">로그인</button>
-        <button @click="goToSignup">회원가입</button>
+    <!-- 설문조사 필요 팝업 -->
+    <div v-if="showSurveyPopup" class="popup-overlay">
+      <div class="popup">
+        <h4>추천 목록을 보려면 먼저 설문조사를 완료해주세요.</h4>
+        <button @click="goToSurvey">설문조사 하러 가기</button>
       </div>
     </div>
 
-    <!-- 로그인된 경우 추천 목록 표시 -->
-    <div v-else>
+    <!-- 추천 목록 표시 -->
+    <template v-else>
       <h1>맞춤 금융 상품 추천</h1>
       <div v-if="loading" class="loading">
         데이터를 불러오는 중입니다...
@@ -22,95 +19,106 @@
         <div v-if="recommendedProducts.deposits.length > 0" class="product-section">
           <h2>추천 예금 상품</h2>
           <div class="product-list">
-            <div v-for="product in recommendedProducts.deposits" :key="product.id" class="product-card">
+            <div
+              v-for="product in recommendedProducts.deposits"
+              :key="product.id"
+              class="product-card"
+            >
               <h3>{{ product.fin_prdt_nm }}</h3>
               <p>{{ product.kor_co_nm }}</p>
-              <p>최고금리: {{ Math.max(...product.deposit_options.map(opt => opt.intr_rate2 || 0)) }}%</p>
+              <p>
+                최고금리: {{ Math.max(...product.deposit_options.map(opt => opt.intr_rate2 || 0)) }}%
+              </p>
               <button @click="goToDetail(product.id, 'deposit')">자세히 보기</button>
             </div>
           </div>
         </div>
-        <br><br>
+        <br /><br />
         <!-- 추천 적금 상품 -->
         <div v-if="recommendedProducts.savings.length > 0" class="product-section">
           <h2>추천 적금 상품</h2>
           <div class="product-list">
-            <div v-for="product in recommendedProducts.savings" :key="product.id" class="product-card">
+            <div
+              v-for="product in recommendedProducts.savings"
+              :key="product.id"
+              class="product-card"
+            >
               <h3>{{ product.fin_prdt_nm }}</h3>
               <p>{{ product.kor_co_nm }}</p>
-              <p>최고금리: {{ Math.max(...product.saving_options.map(opt => opt.intr_rate2 || 0)) }}%</p>
+              <p>
+                최고금리: {{ Math.max(...product.saving_options.map(opt => opt.intr_rate2 || 0)) }}%
+              </p>
               <button @click="goToDetail(product.id, 'saving')">자세히 보기</button>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
 import { useUserStore } from "@/stores/users";
+import { useRouter } from "vue-router";
 import axios from "axios";
 
 const userStore = useUserStore();
+const router = useRouter();
 const loading = ref(true);
 const recommendedProducts = ref({
   deposits: [],
-  savings: []
+  savings: [],
 });
-
-// 로그인 페이지로 이동
-function goToLogin() {
-  window.location.href = "/login";
-}
-
-// 회원가입 페이지로 이동
-function goToSignup() {
-  window.location.href = "/signup";
-}
+const showSurveyPopup = ref(false); // 설문 팝업 표시 여부
 
 // 설문 페이지로 이동
 function goToSurvey() {
-  alert("설문조사가 필요합니다."); // 팝업 알림
-  window.location.href = "/survey"; // SurveyBot.vue로 이동
+  router.push("/survey"); // Survey 페이지로 리다이렉트
 }
 
+// 추천 상품 데이터 가져오기
 const fetchRecommendations = async () => {
-  try {
-    const response = await axios.get("http://127.0.0.1:8000/surveys/recommendations/", {
-      headers: { Authorization: `Token ${userStore.token}` }
-    });
-
-    // 응답 데이터가 예상대로 오는지 검증
-    if (response.data.deposit_recommendations && response.data.saving_recommendations) {
+  axios({
+    method: "get",
+    url: `${import.meta.env.VITE_API_URL}/recommendations/recommend/`,
+    headers: {
+      Authorization: `Token ${localStorage.getItem("token")}`,
+    },
+  })
+    .then((response) => {
       recommendedProducts.value = {
         deposits: response.data.deposit_recommendations || [],
-        savings: response.data.saving_recommendations || []
+        savings: response.data.saving_recommendations || [],
       };
-    } else {
-      throw new Error("Invalid response structure");
-    }
-  } catch (error) {
-    console.error("추천 상품 조회 실패:", error);
-    goToSurvey(); // 설문조사 페이지로 이동
-  } finally {
-    loading.value = false;
-  }
+    })
+    .catch((error) => {
+      console.error("Recommendation fetch failed:", error.response || error.message);
+      alert("추천 데이터를 가져오는 중 문제가 발생했습니다.");
+    });
 };
 
+
+
 onMounted(() => {
-  if (userStore.isLogin) {
-    fetchRecommendations();
+  // 로컬 스토리지에서 설문 완료 상태 확인
+  const surveyCompletedFromStorage = localStorage.getItem("surveyCompleted") === "true";
+
+  if (!surveyCompletedFromStorage) {
+    showSurveyPopup.value = true; // 설문조사가 완료되지 않으면 팝업 표시
+  } else {
+    userStore.surveyCompleted = true; // 상태 동기화
+    fetchRecommendations(); // 설문조사가 완료된 경우 데이터 가져오기
   }
 });
 </script>
 
+
 <style scoped>
-/* 페이지 전체 레이아웃 */
+/* 페이지 레이아웃 */
 .recommendation-page {
   padding: 20px;
-  max-width: 800px; /* 더 넓은 화면을 지원 */
+  max-width: 800px;
   margin: 0 auto;
   font-family: Arial, sans-serif;
   line-height: 1.5;
@@ -128,112 +136,55 @@ onMounted(() => {
   margin: 50px 0;
 }
 
-/* 섹션 제목 */
-.product-section h2 {
-  margin-bottom: 20px;
-  font-size: 1.5rem;
-  color: #85725d;
-  border-bottom: 2px solid #e0e0e0;
-  padding-bottom: 5px;
-}
-
-/* 상품 카드 리스트 */
-.product-list {
-  display: grid;
-  gap: 20px;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-}
-
-/* 상품 카드 */
-.product-card {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 15px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.product-card h3 {
-  font-size: 1.2rem;
-  margin-bottom: 10px;
-  color: #333;
-}
-
-.product-card p {
-  margin: 5px 0;
-  font-size: 0.9rem;
-  color: #555;
-}
-
-.product-card button {
-  margin-top: 10px;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  background-color: #85725d;
-  color: white;
-  font-size: 0.9rem;
-  transition: background-color 0.3s, box-shadow 0.3s;
-}
-
-.product-card button:hover {
-  background-color: #85725d;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* 카드 호버 효과 */
-.product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-}
-
 /* 팝업 오버레이 */
-.overlay {
+.popup-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
+  backdrop-filter: blur(5px); /* 배경 흐림 효과 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
   z-index: 999;
 }
 
-/* 팝업 창 */
-.login-popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+/* 팝업 */
+.popup {
   background: #fff;
   padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
+  border-radius: 12px;
   text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  width: 300px;
 }
 
-.login-popup h2 {
+.popup h2 {
   font-size: 1.5rem;
   margin-bottom: 15px;
   color: #333;
 }
 
-.login-popup button {
-  margin: 10px;
+.popup p {
+  margin-bottom: 20px;
+  color: #666;
+}
+
+.popup button {
   padding: 10px 20px;
   border: none;
   border-radius: 8px;
-  cursor: pointer;
   background-color: #85725d;
   color: white;
   font-size: 1rem;
+  cursor: pointer;
   transition: background-color 0.3s, transform 0.3s;
 }
 
-.login-popup button:hover {
-  background-color: #85725d;
+.popup button:hover {
+  background-color: #6c5a4c;
   transform: scale(1.05);
 }
 
@@ -243,17 +194,8 @@ onMounted(() => {
     padding: 15px;
   }
 
-  .product-card {
-    padding: 10px;
-  }
-
-  .product-card h3 {
-    font-size: 1rem;
-  }
-
-  .product-card button {
-    font-size: 0.8rem;
-    padding: 6px 12px;
+  .popup {
+    width: 90%;
   }
 }
 </style>

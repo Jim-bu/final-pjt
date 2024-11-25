@@ -11,7 +11,7 @@ export const useCommunityStore = defineStore('community', () => {
   const fetchReviews = async () => {
     try {
       const response = await axios.get(`${API_URL}/bankings/reviews/`, {
-        headers: { Authorization: `Token ${localStorage.getItem('token')}` }
+        // headers: { Authorization: `Token ${localStorage.getItem('token')}` }
       })
       reviews.value = response.data
     } catch (err) {
