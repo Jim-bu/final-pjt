@@ -3,10 +3,11 @@ import { computed, ref } from 'vue';
 import { useUserStore } from '@/stores/users';
 import { useVuelidate } from '@vuelidate/core';
 import { email, required, minLength, maxLength, alphaNum, sameAs, helpers } from '@vuelidate/validators';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 const userStore = useUserStore();
 const router = useRouter();
+const route = useRoute();
 
 const checkList = ['service', 'info'];
 const selected = ref([]);
@@ -52,21 +53,18 @@ const rules = {
     email: helpers.withMessage('이메일 주소가 정확한지 확인해 주세요.', email),
     maxLength: helpers.withMessage('100자 이하로 입력해야합니다.', maxLength(100)),
   },
-  password1: { 
+  password1: {
     required: helpers.withMessage('비밀번호를 입력해주세요.', required),
-    minLength: helpers.withMessage('8~16자의 영문 대/소문자, 숫자, 특수문자를 사용해 주세요. 특수문자는 *!@#$%^&만 사용가능합니다.', minLength(8)),
-    maxLength: helpers.withMessage('8~16자의 영문 대/소문자, 숫자, 특수문자를 사용해 주세요. 특수문자는 *!@#$%^&만 사용가능합니다.', maxLength(16)),
-    containspasswordrequirement: helpers.withMessage(
-      () => `8~16자의 영문 대/소문자, 숫자, 특수문자를 사용해 주세요. 특수문자는 *!@#$%^&만 사용가능합니다.`, 
-      (value) => /(?=.*[a-z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])/.test(value)
-    )
+    minLength: helpers.withMessage('8자 이상 입력해주세요.', minLength(8)),
+    maxLength: helpers.withMessage('16자 이하로 입력해주세요.', maxLength(16)),
   },
-  password2: { 
+  password2: {
     required: helpers.withMessage('비밀번호 확인은 필수 사항입니다.', required),
-    sameAsPassword: helpers.withMessage('비밀번호가 일치하지 않습니다.',
+    sameAsPassword: helpers.withMessage(
+      '비밀번호가 일치하지 않습니다.',
       sameAs(computed(() => state.value.password1))
-    )
-  }
+    ),
+  },
 };
 
 const v$ = useVuelidate(rules, state);
@@ -98,8 +96,18 @@ const signUp = async () => {
     };
 
     await userStore.signUp(payload);
+
+    // 자동 로그인 처리
+    const loginPayload = {
+      username: state.value.username,
+      password: state.value.password1,
+    };
+    await userStore.logIn(loginPayload);
+
     alert('회원가입이 완료되었습니다!');
-    await router.push('/main'); // 회원가입 성공 후 홈으로 리디렉션
+    const redirectPath = route.query.redirect || '/main';
+    router.push(redirectPath);
+
     clearForm();
   } catch (error) {
     alert('회원가입 중 문제가 발생했습니다. 다시 시도해 주세요.');
@@ -107,35 +115,36 @@ const signUp = async () => {
 };
 </script>
 
+
 <template>
   <v-card class="container">
-    <v-card-title>Sign up to <span class="color">WWW</span></v-card-title>
+    <h1 class="title">Sign up to <span class="highlight">WWW</span></h1>
 
     <div class="checkbox">
       <p class="warning" v-text="errorAgree"></p>
       <v-checkbox
-        color="#1089FF"
+        color="#A58E74"
         label="(필수) 서비스 이용약관 동의"
         value="service"
         v-model="selected"
       ></v-checkbox>
       <v-checkbox
-        color="#1089FF"
+        color="#A58E74"
         label="(필수) 개인정보 처리 동의"
         value="info"
         v-model="selected"
       ></v-checkbox>
-      <v-checkbox color="#1089FF" v-model="isAgreeAll">
+      <v-checkbox color="#A58E74" v-model="isAgreeAll">
         <template v-slot:label>
-          <span class="color">전체 동의</span>
+          <span>전체 동의</span>
         </template>
       </v-checkbox>
     </div>
 
-    <form @submit.prevent="signUp" @keypress.enter="signUp">
+    <form @submit.prevent="signUp">
       <v-text-field
         variant="outlined"
-        color="#1089FF"
+        color="#A58E74"
         label="아이디"
         v-model="state.username"
         :error-messages="v$.username.$errors.map((e) => e.$message)"
@@ -145,7 +154,7 @@ const signUp = async () => {
 
       <v-text-field
         variant="outlined"
-        color="#1089FF"
+        color="#A58E74"
         label="닉네임"
         v-model="state.name"
         :error-messages="v$.name.$errors.map((e) => e.$message)"
@@ -155,7 +164,7 @@ const signUp = async () => {
 
       <v-text-field
         variant="outlined"
-        color="#1089FF"
+        color="#A58E74"
         label="이메일"
         v-model="state.email"
         :error-messages="v$.email.$errors.map((e) => e.$message)"
@@ -165,7 +174,7 @@ const signUp = async () => {
 
       <v-text-field
         variant="outlined"
-        color="#1089FF"
+        color="#A58E74"
         :append-icon="show1 ? 'mdi-eye' : 'mdi-eye-off'"
         :type="show1 ? 'text' : 'password'"
         label="비밀번호"
@@ -178,7 +187,7 @@ const signUp = async () => {
 
       <v-text-field
         variant="outlined"
-        color="#1089FF"
+        color="#A58E74"
         :append-icon="show2 ? 'mdi-eye' : 'mdi-eye-off'"
         :type="show2 ? 'text' : 'password'"
         label="비밀번호 확인"
@@ -189,41 +198,52 @@ const signUp = async () => {
         @blur="v$.password2.$touch"
       ></v-text-field>
 
-      <v-btn block variant="flat" color="#1089FF" @click.prevent="signUp">
-        Sign up
+      <v-btn block variant="flat" color="#A58E74" @click.prevent="signUp">
+        회원가입
       </v-btn>
     </form>
-  </v-card>
 
-  <v-btn block variant="flat" color="#1089FF" :to="{ name: 'login' }">
-    이미 계정이 있습니까? 로그인
-  </v-btn>
+    <router-link class="redirect-link" :to="{ name: 'login', query: { redirect: route.query.redirect } }">
+      이미 계정이 있으신가요? 로그인
+    </router-link>
+  </v-card>
 </template>
+
 
 <style scoped>
 .container {
   max-width: 600px;
-  margin: 0 auto;
+  margin: 2rem auto;
   padding: 20px;
+  background-color: #ffefcd;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   text-align: center;
+}
+
+.title {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  color: #424530;
+}
+
+.highlight {
+  color: #A58E74;
 }
 
 .checkbox {
   margin: 1rem 0;
+  text-align: left;
 }
 
-.v-checkbox {
-  height: 40px;
+form > * {
+  margin-bottom: 1rem;
 }
 
-form * {
-  text-align: start;
-  margin: 0.6rem 0;
-}
-
-.warning {
-  color: #b00020;
-  font-size: 12px;
-  margin: 0 0 0 15px;
+.redirect-link {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  color: #424530;
 }
 </style>

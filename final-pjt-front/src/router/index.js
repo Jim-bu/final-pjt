@@ -46,10 +46,15 @@ const router = createRouter({
       name: 'login',
       component: SignInView,
       beforeEnter: (to, from, next) => {
-        if (from.name) {
-          to.query.redirect = from.fullPath;
+        // 로그인 페이지로 이동 전 현재 경로를 `redirect`에 저장
+        if (!to.query.redirect && from.name) {
+          next({
+            ...to,
+            query: { redirect: from.fullPath },
+          });
+        } else {
+          next();
         }
-        next();
       },
     },
     {
@@ -57,13 +62,23 @@ const router = createRouter({
       name: 'signup',
       component: SignUpView,
       beforeEnter: (to, from, next) => {
-        if (from.name) {
-          to.query.redirect = from.fullPath;
+        // 로그인 페이지로 이동 전 현재 경로를 `redirect`에 저장
+        if (!to.query.redirect && from.name) {
+          next({
+            ...to,
+            query: { redirect: from.fullPath },
+          });
+        } else {
+          next();
         }
-        next();
       },
     },
-    
+    {
+      path: '/survey',
+      name: 'survey',
+      component: SurveyBot,
+      meta: { requiresAuth: true }, // 인증 필요
+    },
     {
       path: "/nearBank",
       name: "nearBank",
