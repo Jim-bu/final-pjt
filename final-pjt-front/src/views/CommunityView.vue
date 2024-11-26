@@ -311,25 +311,109 @@ const formatDate = (dateString) => {
 .community-page {
   max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 16px;
+  background: #ffffff; /* 흰색 배경 */
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 */
+}
+
+h1 {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: #1368bd; /* 신뢰감 있는 파란색 */
+  margin-bottom: 20px;
 }
 
 .refresh-button {
   margin-bottom: 20px;
   padding: 8px 16px;
-  background-color: #4CAF50;
+  background: #1089ff; /* 기준 파란색 */
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.refresh-button:hover {
+  background: #0d74cc; /* 더 짙은 파란색 */
+}
+
+.opinion-form {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #f9faff; /* 연한 파란색 */
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.input-title,
+.textarea-content,
+.input-comment,
+.product-select {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid #d0e6ff; /* 연한 파란 테두리 */
+  border-radius: 8px;
+  font-size: 14px;
+  background: #ffffff;
+}
+
+.stars {
+  display: flex;
+  gap: 4px;
+  font-size: 24px;
   cursor: pointer;
 }
 
+.star {
+  color: #ccc; /* 기본 별 색상 */
+  transition: color 0.3s ease;
+}
+
+.star.filled {
+  color: #ffd700; /* 별점이 활성화된 경우 금색 */
+}
+
+.submit-button {
+  padding: 10px 16px;
+  background: #1089ff; /* 기준 파란색 */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.submit-button:hover {
+  background: #0d74cc; /* 더 짙은 파란색 */
+}
+
+.cancel-button {
+  padding: 10px 16px;
+  background: #f5f5f5; /* 회색 */
+  color: #666;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.cancel-button:hover {
+  background: #e0e0e0; /* 약간 더 짙은 회색 */
+}
+
 .opinion-card {
-  background: white;
+  background: #ffffff;
   padding: 20px;
   margin-bottom: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .review-header {
@@ -352,39 +436,47 @@ const formatDate = (dateString) => {
 }
 
 .like-button {
-  padding: 5px 10px;
+  padding: 6px 12px;
   border: 1px solid #ff4081;
-  background: white;
+  background: #ffffff;
   color: #ff4081;
   border-radius: 20px;
   cursor: pointer;
+  font-size: 14px;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .like-button.liked {
-  background: #ff4081;
+  background: #ff4081; /* 하트 버튼 활성화 시 색상 */
   color: white;
-}
-
-.review-actions {
-  margin-top: 10px;
-}
-
-.edit-button, .delete-button {
-  margin-right: 10px;
-  padding: 5px 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
 }
 
 .edit-button {
-  background: #2196F3;
+  background: #4caf50; /* 녹색 */
   color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.edit-button:hover {
+  background: #43a047; /* 짙은 녹색 */
 }
 
 .delete-button {
-  background: #f44336;
+  background: #f44336; /* 빨간색 */
   color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.delete-button:hover {
+  background: #e53935; /* 짙은 빨간색 */
 }
 
 .comment-section {
@@ -397,26 +489,12 @@ const formatDate = (dateString) => {
   padding: 10px;
   margin: 5px 0;
   background: #f5f5f5;
-  border-radius: 4px;
+  border-radius: 8px;
 }
 
 .comment-author {
   font-weight: bold;
   margin-right: 10px;
-}
-
-.login-message {
-  text-align: center;
-  padding: 20px;
-  background: #f5f5f5;
-  border-radius: 8px;
-  margin: 20px 0;
-}
-
-.login-link {
-  color: #2196F3;
-  text-decoration: none;
-  font-weight: bold;
 }
 
 .comment-form {
@@ -429,73 +507,6 @@ const formatDate = (dateString) => {
   flex: 1;
   padding: 8px;
   border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.community-page {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 16px;
-  background: #f9f5ee;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-h1 {
-  text-align: center;
-  font-size: 24px;
-  color: #333;
-  margin-bottom: 16px;
-}
-
-.opinion-form {
-  margin-bottom: 24px;
-  padding: 16px;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.input-title,
-.textarea-content,
-.input-comment,
-.product-select {
-  width: 100%;
-  margin-bottom: 12px;
-  padding: 12px;
-  border: 1px solid #ccc;
   border-radius: 8px;
-  font-size: 14px;
-}
-
-.stars {
-  display: flex;
-  gap: 4px;
-  font-size: 24px;
-  cursor: pointer;
-}
-
-.star {
-  color: #ccc;
-  transition: color 0.3s;
-}
-
-.star.filled {
-  color: #ffd700;
-}
-
-.submit-button {
-  padding: 10px 16px;
-  background: #5a9;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.submit-button:hover {
-  background: #47a;
 }
 </style>

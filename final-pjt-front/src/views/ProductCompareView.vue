@@ -229,12 +229,15 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.h1 {
+  text-align: center;
+}
 /* 페이지 스타일 */
 .compare-page {
   max-width: 800px;
   margin: 0 auto;
   padding: 16px;
-  background-color: #fdf6e3;
+  background-color: #f8faff; /* 옅은 파란색 */
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -248,9 +251,9 @@ onMounted(async () => {
   width: 100%;
   padding: 10px;
   font-size: 16px;
-  border: 2px solid #d1c4b2;
+  border: 2px solid #d0e6ff; /* 옅은 파란색 */
   border-radius: 8px;
-  background-color: #fffaf3;
+  background-color: #ffffff; /* 흰색 */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -267,31 +270,31 @@ onMounted(async () => {
   font-size: 16px;
   border: none;
   border-radius: 8px;
-  background-color: #f8e5c3;
+  background-color: #d6eaff; /* 옅은 파란색 */
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .product-tab button.active {
-  background-color: #e4c089;
-  color: #fff;
+  background-color: #1089FF; /* 기준 파란색 */
+  color: #ffffff;
   font-weight: bold;
 }
 
 .product-tab button:hover {
-  background-color: #d8b679;
+  background-color: #0d74cc; /* 짙은 파란색 */
 }
 
 /* 상품 카드 스타일 */
 .product-list {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr); /* 2열 그리드 */
   gap: 10px;
 }
 
 .product-card {
-  background-color: #fffaf3;
-  border: 1px solid #d1c4b2;
+  background-color: #ffffff; /* 흰색 */
+  border: 1px solid #d0e6ff; /* 옅은 파란색 */
   border-radius: 8px;
   padding: 16px;
   text-align: center;
@@ -300,9 +303,10 @@ onMounted(async () => {
 }
 
 .product-card.selected {
-  background-color: #e4c089;
-  border-color: #c69a5d;
-  transform: scale(1.05);
+  background-color: #1089FF; /* 기준 파란색 */
+  border-color: #0d74cc; /* 짙은 파란색 */
+  color: #ffffff; /* 흰색 텍스트 */
+  transform: scale(1.00);
 }
 
 /* 페이지네이션 */
@@ -317,13 +321,14 @@ onMounted(async () => {
   font-size: 14px;
   border: none;
   border-radius: 8px;
-  background-color: #c69a5d;
+  background-color: #1089FF; /* 기준 파란색 */
   color: white;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .pagination button:disabled {
-  background-color: #ddd;
+  background-color: #d0e6ff; /* 비활성화된 상태의 옅은 파란색 */
   color: #aaa;
   cursor: not-allowed;
 }
@@ -335,14 +340,15 @@ onMounted(async () => {
   font-size: 16px;
   border: none;
   border-radius: 8px;
-  background-color: #8b572a;
+  background-color: #1089FF; /* 기준 파란색 */
   color: white;
   margin-top: 20px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .compare-button:disabled {
-  background-color: #ddd;
+  background-color: #d0e6ff; /* 비활성화된 상태의 옅은 파란색 */
   color: #aaa;
   cursor: not-allowed;
 }

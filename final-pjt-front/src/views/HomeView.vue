@@ -152,7 +152,7 @@ onMounted(() => {
 
 /* 날짜, 증시, 금융 뉴스 박스 */
 .info-box {
-  background-color: #F2F6FC; /* 옅은 파란색 배경 */
+  background-color: #eceef1; /* 옅은 파란색 배경 */
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 살짝 줄인 그림자 */
@@ -221,7 +221,7 @@ onMounted(() => {
   margin-top: 10px;
   padding: 12px;
   font-size: 14px;
-  background-color: #3366CC; /* 파란색 버튼 */
+  background-color: #1089FF; /* 파란색 버튼 */
   color: #FFFFFF; /* 흰색 텍스트 */
   border: none;
   border-radius: 8px;

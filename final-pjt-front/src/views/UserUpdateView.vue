@@ -338,64 +338,37 @@ header a {
   letter-spacing: -1px;
   color: #222;
   text-decoration: none;
+  transition: font-size 0.2s ease, color 0.2s ease;
 }
 
+header a:hover {
+  font-size: 22px;
+  color: #1089ff;
+}
+
+/* 회원 탈퇴 버튼 */
 .delete-button {
-  margin-left: 10px;
-  background-color: #c0392b;
-  color: white;
   border: none;
-  padding: 5px 15px;
-  border-radius: 5px;
+  background: none;
+  margin-left: 200px;
+  color: #e74c3c; /* 빨간색 */
+  text-decoration: underline;
+  font-size: 14px;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
 .delete-button:hover {
-  background-color: #a93226;
+  color: #c0392b; /* 더 짙은 빨간색 */
 }
+
 .update-page {
   max-width: 800px;
-  margin: 0 auto;
+  margin: 2rem auto;
   padding: 20px;
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 50vh;
-}
-
-.loading-message {
-  text-align: center;
-  padding: 2rem;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.loading-message p {
-  color: #666;
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
-}
-
-.login-link {
-  display: inline-block;
-  padding: 0.5rem 1.5rem;
-  background-color: #e4c089;
-  color: white;
-  text-decoration: none;
-  border-radius: 4px;
-  font-weight: 500;
-  transition: background-color 0.2s;
-}
-
-.login-link:hover {
-  background-color: #d8b679;
 }
 
 .update-form {
@@ -440,12 +413,12 @@ header a {
 }
 
 .submit-button {
-  background-color: #e4c089;
+  background-color: #1089ff;
   color: white;
 }
 
 .submit-button:hover {
-  background-color: #d8b679;
+  background-color: #0d74cc;
 }
 
 .cancel-button {
@@ -472,7 +445,7 @@ header a {
   margin: 0 auto 16px;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid #e4c089;
+  border: 3px solid #1089ff;
   background-color: #f5f5f5;
 }
 
@@ -488,8 +461,8 @@ header a {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #e4c089;
-  color: white;
+  background-color: #ffffff;
+  color: #1089ff;
   font-size: 2rem;
   font-weight: bold;
 }
@@ -501,7 +474,7 @@ header a {
 .upload-label {
   display: inline-block;
   padding: 8px 16px;
-  background-color: #e4c089;
+  background-color: #1089ff;
   color: white;
   border-radius: 4px;
   cursor: pointer;
@@ -509,7 +482,7 @@ header a {
 }
 
 .upload-label:hover {
-  background-color: #d8b679;
+  background-color: #0d74cc;
 }
 
 .file-input {
@@ -521,4 +494,5 @@ header a {
   font-size: 14px;
   color: #666;
 }
+
 </style>

@@ -268,7 +268,7 @@ const renderChart = () => {
         type: "bar", // 막대 그래프로 시각화
         barWidth: "60%",
         itemStyle: {
-          color: "#85725d", // 막대 색상
+          color: "#248eeb", // 막대 색상
         },
         label: {
           show: false,
@@ -327,72 +327,146 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 전체 페이지 스타일 */
 .exchange-view {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
   font-family: "Arial", sans-serif;
+  background-color: #ffffff; /* 흰색 배경 */
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 */
 }
 
-.calculator-section {
-  margin-top: 1rem; /* 공간 줄이기 */
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+/* 제목 스타일 */
+h1 {
+  /* text-align: center; */
+  font-size: 2rem;
+  color: #222324; /* 기준 파란색 */
+  /* margin-bottom: px; */
+  text-shadow: 1px 1px 2px rgba(16, 137, 255, 0.2); /* 텍스트 그림자 */
 }
 
-.calculator {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.input-group {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.input-group input {
-  width: 150px;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.input-group select {
-  min-width: 120px;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.controls {
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.controls select {
-  padding: 8px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-.conversion-table,
-.all-rates {
-  margin-top: 30px;
-}
-
+/* 환율 차트 */
 .exchange-chart {
   width: 100%;
   height: 400px;
-  margin: 0; /* 기존 여백 제거 */
-  padding: 0; /* 기존 패딩 제거 */
+  margin: 0;
+  background-color: #f8faff; /* 옅은 파란색 배경 */
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 바깥쪽 그림자 */
 }
 
+/* 계산기 섹션 */
+.calculator-section {
+  margin-top: 30px;
+  padding: 20px;
+  background: linear-gradient(to bottom, #ffffff, #f8faff); /* 흰색에서 파란색 그라데이션 */
+  border: 1px solid #d0e6ff; /* 옅은 파란색 테두리 */
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 계산기 제목 */
+.calculator-section h2 {
+  font-size: 1.5rem;
+  color: #1089FF;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* 계산기 레이아웃 */
+.calculator {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+/* 입력 그룹 */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 calc(48% - 10px);
+}
+
+.input-group input {
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #d0e6ff;
+  border-radius: 6px;
+  background-color: #f8faff;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.input-group select {
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #d0e6ff;
+  border-radius: 6px;
+  background-color: #f8faff;
+}
+
+/* 스왑 버튼 */
+.swap-button {
+  background-color: #1089FF;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.3s;
+  align-self: center;
+}
+
+.swap-button:hover {
+  background-color: #0D74CC;
+  transform: rotate(180deg);
+}
+
+/* 계산 버튼 */
+.calculate-button {
+  padding: 10px 20px;
+  background-color: #1089FF;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  align-self: center;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.calculate-button:hover {
+  background-color: #0D74CC;
+  transform: scale(1.05);
+}
+
+.calculate-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* 통화 선택 컨트롤 */
+.controls {
+  margin: 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.controls select {
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #d0e6ff;
+  border-radius: 6px;
+  background-color: #f8faff;
+}
+
+/* 테이블 스타일 */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -401,44 +475,17 @@ table {
 
 th, td {
   border: 1px solid #ddd;
-  padding: 8px;
+  padding: 12px;
   text-align: center;
 }
 
 th {
-  background-color: #f4f4f4;
-  font-weight: bold;
-}
-
-label {
-  font-size: 16px;
-  font-weight: bold;
-}
-
-h2 {
-  margin-top: 20px;
-  font-size: 18px;
-}
-
-.swap-button {
-  padding: 0.5rem 1rem;
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.calculate-button {
-  padding: 0.5rem 1rem;
-  background-color: #85725d;
+  background-color: #1089FF;
   color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
 }
 
-.calculate-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
+td {
+  font-size: 14px;
+  color: #333;
 }
 </style>
