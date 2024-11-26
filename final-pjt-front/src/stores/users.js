@@ -54,20 +54,23 @@ export const useUserStore = defineStore('users', () => {
     const { username, password } = payload;
     isLoading.value = true;
     error.value = null;
-
+  
     try {
       const response = await axios({
         method: 'post',
         url: `${API_URL}/accounts/login/`,
         data: { username, password },
       });
-
+  
       token.value = response.data.key;
       localStorage.setItem('token', response.data.key);
-      
+  
       await getUserInfo();
-      router.push({ name: 'Main' });
-      
+  
+      // 기존 쿼리 값 사용
+      const redirectPath = router.currentRoute.value.query.redirect || '/main';
+      router.push(redirectPath);
+  
     } catch (err) {
       console.error('로그인 실패:', err);
       error.value = err.response?.data || '로그인에 실패했습니다.';
@@ -75,7 +78,7 @@ export const useUserStore = defineStore('users', () => {
       isLoading.value = false;
     }
   };
-
+  
   // 로그아웃
   const logOut = async function () {
     if (!token.value) return;
