@@ -1,3 +1,5 @@
+from dj_rest_auth.registration.serializers import RegisterSerializer
+from rest_framework import serializers
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
@@ -36,3 +38,18 @@ class UserSerializer(serializers.ModelSerializer):
         if data.get('salary') and data['salary'] < 0:
             raise serializers.ValidationError("Salary cannot be negative.")
         return data
+
+
+class CustomRegisterSerializer(RegisterSerializer):
+    name = serializers.CharField(required=False)
+    
+    def get_cleaned_data(self):
+        data = super().get_cleaned_data()
+        data['name'] = self.validated_data.get('name', '')
+        return data
+
+    def save(self, request):
+        user = super().save(request)
+        user.name = self.cleaned_data.get('name', '')
+        user.save()
+        return user
