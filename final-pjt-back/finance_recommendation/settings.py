@@ -24,26 +24,36 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-vm-cg-6%r-$ti(r$b637v24i3g%r64q$873i+_e30n_9&gigoo'
+# 데이터베이스 URL (예: SQLite)
+DATABASE_URL=env('DATABASE_URL')
 
-# 금융감독원 API
-BANKINGS_KEY = 'fd89ce1528e7ff78f03859c34dd17c0e'
+# 백엔드 API URL
+VITE_API_URL=env('VITE_API_URL')
 
-# 한국수출입은행 API
-CURRENCIES_KEY = 'GO74rCNUkQZb0D4TUlE5OsyNr5eiS78e'
+# Django Secret Key
+SECRET_KEY=env('SECRET_KEY')
+
+# 금융감독원 API Key
+BANKINGS_KEY=env('BANKINGS_KEY')
+
+# 한국수출입은행 API Key
+CURRENCIES_KEY=env('CURRENCIES_KEY')
+
+# 카카오맵
+VITE_APP_KAKAO_MAP_API_KEY=env('VITE_APP_KAKAO_MAP_API_KEY')
 
 # 공공데이터포털 API
-STOCKS_KEY = 'napUJp%2BaSVtsZIjCXy8YJhjxR%2Fckk3WKMhL0sF7tliHtVy%2FuOUjz4P3UTe5Vl61Pr7TR8wli4UxpwWwykMpU%2BA%3D%3D'
+STOCKS_KEY=env('STOCKS_KEY')
 
 # 네이버 검색 API 키
-NAVER_CLIENT_ID = 'Www2nwUTz3LsUOuKExyf'
-NAVER_CLIENT_SECRET = 'aKTPHptBFv'
+NAVER_CLIENT_ID=env('NAVER_CLIENT_ID')
+NAVER_CLIENT_SECRET=env('NAVER_CLIENT_SECRET')
 
 # OPENAI GPT API 키
-CHATS_KEY = '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'
+CHATS_KEY=env('CHATS_KEY')
 
 # RESEND API 키
-RESEND_API_KEY = "re_dj23NUXw_5eZwysN8YriwTozxd3HTKiEj"
+RESEND_API_KEY=env('RESEND_API_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
