@@ -36,15 +36,19 @@
             가입기간: {{ extractJoinPeriod(product.etc_note) }}
           </p>
         </div>
+        <div class="button-group">
         <button class="detail-button" @click="showDetail(product)">
           상세 보기
         </button>
         <button
-          class="subscribe-button"
+          class="subscribe-button" 
+          :class="{ 'subscribed-yellow': isSubscribed(product) }"
           @click="toggleSubscription(product)"
         >
-          {{ isSubscribed(product) ? "구독 취소" : "가입하기" }}
+          >
+            {{ isSubscribed(product) ? "구독 취소" : "가입하기" }}
         </button>
+      </div>
       </div>
     </div>
 
@@ -146,45 +150,91 @@ const extractJoinPeriod = (note) => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
+/* 카드형 레이아웃 */
 .product-card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  display: flex;
+  justify-content: space-between; /* 시작 부분과 버튼 부분 분리 */
+  align-items: center;
+  border: 1px solid #E0E0E0; /* 옅은 회색 경계 */
+  border-radius: 12px;
   padding: 16px;
-  background-color: #f9f9f9;
+  background-color: #FFFFFF; /* 흰색 배경 */
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .product-card:hover {
-  transform: scale(1.02);
+  transform: translateY(-5px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 */
 }
 
 .product-header {
   font-size: 14px;
   font-weight: bold;
-  margin-bottom: 8px;
+  color: #333333; /* 검은색 텍스트 */
 }
 
 .product-body {
   font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #333333; /* 검은색 텍스트 */
+}
+
+.product-name {
+  font-weight: bold;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end; /* 오른쪽 정렬 */
+  gap: 4px; /* 버튼 간 간격 */
 }
 
 .detail-button {
-  margin-top: 12px;
-  background-color: #424530;
-  color: #ffefcd;
+  background-color: #1089FF; /* 기준 파란색 */
+  color: #FFFFFF;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 8px 12px;
   cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .detail-button:hover {
-  background-color: #2a3620;
+  background-color: #0D74CC; /* Hover 짙은 파란색 */
+}
+
+.subscribe-button {
+  background-color: #FFFFFF; /* 흰색 배경 */
+  color: #1089FF;
+  border: 2px solid #1089FF; /* 파란색 테두리 */
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.subscribe-button:hover {
+  background-color: #1089FF;
+  color: #FFFFFF;
+}
+
+/* 구독 취소 상태 - 노란 계열 */
+.subscribe-button.subscribed-yellow {
+  background-color: #FFFDE7; /* 연한 노란 배경 */
+  color: #FFC107; /* 노란색 텍스트 */
+  border: 2px solid #FFC107; /* 노란색 테두리 */
+}
+
+.subscribe-button.subscribed-yellow:hover {
+  background-color: #FFC107;
+  color: #FFFFFF;
 }
 
 /* 탭 스타일 */
@@ -192,19 +242,20 @@ const extractJoinPeriod = (note) => {
   display: flex;
   justify-content: center;
   margin-bottom: 16px;
+  gap: 8px;
 }
 .tab {
   padding: 10px 20px;
   border: none;
   cursor: pointer;
   font-size: 16px;
-  background-color: #f2f2f2;
-  margin: 0 5px;
+  background-color: #F2F2F2;
   border-radius: 8px;
+  transition: background-color 0.2s;
 }
 .tab.active {
-  background-color: #424530;
-  color: #ffefcd;
+  background-color: #1089FF;
+  color: #FFFFFF;
 }
 
 /* 페이지네이션 스타일 */
@@ -212,18 +263,19 @@ const extractJoinPeriod = (note) => {
   display: flex;
   justify-content: center;
   margin-top: 16px;
+  gap: 8px;
 }
 .pagination button {
   padding: 8px 12px;
-  margin: 0 4px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  background-color: #f2f2f2;
+  background-color: #F2F2F2;
+  transition: background-color 0.2s;
 }
 .pagination button.active {
-  background-color: #424530;
-  color: #ffefcd;
+  background-color: #1089FF;
+  color: #FFFFFF;
 }
 
 /* 팝업 스타일 */
@@ -240,24 +292,25 @@ const extractJoinPeriod = (note) => {
   z-index: 1000;
 }
 .popup-content {
-  background-color: #fff;
+  background-color: #FFFFFF;
   padding: 24px;
   border-radius: 12px;
   max-width: 90%;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
-.subscribe-button {
-  margin-top: 8px;
-  background-color: #1d72b8;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 12px;
-  cursor: pointer;
+.popup-content h2 {
+  font-size: 20px;
+  font-weight: bold;
+  color: #2b2d2f; /* 제목 색상 */
+  margin-bottom: 16px;
+  text-align: center;
 }
 
-.subscribe-button:hover {
-  background-color: #155a92;
+.popup-content p {
+  font-size: 14px;
+  color: #333333;
+  margin: 4px 0;
+  line-height: 1.5;
 }
 </style>

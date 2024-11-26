@@ -16,9 +16,9 @@
         회원 정보 수정
       </RouterLink>
       
-        <button class="delete-button" @click="handleDeleteAccount">
-          회원 탈퇴
-        </button>
+      <button class="delete-button" @click="handleDeleteAccount">
+        회원 탈퇴
+      </button>
       </div>
     </header>
 
@@ -91,8 +91,12 @@ const handleDeleteAccount = async () => {
 
 <style scoped>
 .container {
-  width: 800px;
+  max-width: 800px;
   margin: 2rem auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 큰 카드 스타일 추가 */
 }
 
 .subscriptions {
@@ -117,15 +121,17 @@ button:hover {
   background-color: #c0392b;
 }
 
+/* 회원 탈퇴 버튼 (텍스트 + 밑줄) */
 .delete-button {
-  margin-left: 10px;
-  background-color: #c0392b;
-  color: white;
   border: none;
-  padding: 5px 15px;
-  border-radius: 5px;
+  background: none;
+  margin-left: 230px;
+  color: #e74c3c; /* 빨간색 */
+  text-decoration: underline;
+  font-size: 14px;
   cursor: pointer;
 }
+
 
 .delete-button:hover {
   background-color: #a93226;
@@ -178,9 +184,87 @@ header a {
   letter-spacing: -1px;
   color: #222;
   text-decoration: none;
+  transition: font-size 0.2s ease, color 0.2s ease;
+  white-space: nowrap; /* 텍스트 줄 바꿈 방지 */
+}
+
+header a:hover {
+  font-size: 22px;
+  color: #1089ff;
 }
 
 a.active {
   color: #5c5c4e;
+}
+
+/* 금융 상품 섹션 */
+.subscriptions {
+  width: 90%;
+  margin-top: 2rem;
+  background-color: #f9f9f9; /* 연한 회색 배경 */
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.subscriptions h2 {
+  margin-bottom: 1rem;
+  color: #333;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* 금융 상품 리스트 */
+.subscriptions ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.subscriptions li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #ffffff; /* 흰색 배경 */
+  border: 1px solid #ddd; /* 연한 회색 경계선 */
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* 부드러운 그림자 */
+}
+
+.subscriptions li:last-child {
+  margin-bottom: 0;
+}
+
+.subscriptions li:hover {
+  /* border-color: #1089ff; 파란색 테두리 강조 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 강조된 그림자 */
+}
+
+/* 구독 취소 버튼 */
+.subscriptions button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 15px;
+  background-color: #3e6330; /* 파란색 */
+  color: white;
+  font-size: 12px;
+  white-space: nowrap; /* 텍스트 줄 바꿈 방지 */
+  text-align: center; /* 텍스트 중앙 정렬 */
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.subscriptions button:hover {
+  background-color: #145150; /* 짙은 파란색 */
+}
+
+/* 빈 리스트 메시지 */
+.subscriptions p {
+  text-align: center;
+  color: #666;
+  font-size: 16px;
+  margin: 0;
 }
 </style>

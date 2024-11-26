@@ -154,16 +154,23 @@ onMounted(() => {
 
 <style scoped>
 .map-component {
-  max-width: 600px;
-  margin: 0 auto;
+  max-width: 700px; /* 컨테이너 너비 확장 */
+  margin: 20px auto;
+  margin-top: 0px;
   font-family: "Arial", sans-serif;
+  background: #ffffff; /* 흰색 배경 */
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* 컨트롤 박스 */
 .controls {
   display: flex;
-  flex-direction: column;
-  gap: 15px;
+  flex-wrap: wrap; /* 반응형 배치 */
+  gap: 20px;
   margin-bottom: 20px;
+  justify-content: space-between; /* 버튼 및 드롭다운 정렬 */
 }
 
 .controls label {
@@ -171,33 +178,65 @@ onMounted(() => {
   flex-direction: column;
   font-size: 14px;
   color: #333;
+  flex: 1 1 calc(33% - 20px); /* 각 컨트롤은 1/3 너비 */
+  min-width: 120px; /* 최소 너비 */
 }
 
 .controls select {
-  padding: 8px;
+  padding: 10px;
   font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  border: 1px solid #d0e6ff; /* 옅은 파란색 테두리 */
+  border-radius: 8px;
+  background-color: #f8faff; /* 옅은 파란색 배경 */
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1); /* 안쪽 그림자 */
+  transition: border-color 0.3s ease;
+}
+
+.controls select:focus {
+  border-color: #1089FF; /* 기준 파란색 포커스 */
+  outline: none;
 }
 
 .search-btn {
-  background-color: #b8ac8e;
+  background: linear-gradient(135deg, #1089FF, #0D74CC); /* 파란색 그라데이션 */
   color: white;
-  padding: 10px;
+  padding: 12px;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   font-size: 16px;
+  font-weight: bold;
   cursor: pointer;
+  flex: 1 1 100%; /* 버튼은 한 줄 전체 */
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .search-btn:hover {
-  background-color: #857945;
+  background: linear-gradient(135deg, #0D74CC, #085AA1);
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* 지도 컨테이너 */
 .map {
   width: 100%;
   height: 400px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  border: 2px solid #d0e6ff; /* 옅은 파란색 테두리 */
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  background: url('/path/to/placeholder-image.png') center center no-repeat;
+  background-size: cover; /* 기본 이미지 커버 */
+  overflow: hidden;
+  position: relative;
+}
+
+.map:after {
+  content: "로딩 중..."; /* 지도 로딩 시 표시 */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #666;
+  font-size: 1.2rem;
+  text-align: center;
 }
 </style>

@@ -309,146 +309,241 @@ const goToSignup = () => {
   padding: 2rem;
   background-color: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.survey-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.survey-progress {
-  margin-bottom: 2rem;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 8px;
-  background-color: #e0e0e0;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background-color: #4CAF50;
-  transition: width 0.3s ease;
-}
-
-.question-container {
-  margin-bottom: 2rem;
-}
-
-.options-container {
-  display: grid;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.option-button {
-  padding: 1rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  background-color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.option-button:hover {
-  border-color: #4CAF50;
-}
-
-.option-button.selected {
-  border-color: #4CAF50;
-  background-color: #E8F5E9;
-}
-
-.navigation-buttons {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 2rem;
-}
-
-.nav-button, .submit-button {
-  padding: 0.8rem 2rem;
-  border: none;
-  border-radius: 4px;
-  background-color: #4CAF50;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.nav-button:disabled, .submit-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-}
-
-.survey-completion {
-  text-align: center;
-}
-
-.recommendation-button {
-  margin-top: 1rem;
-  padding: 1rem 2rem;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.recommendation-button:hover {
-  background-color: #45a049;
-}
-
-
+/* Login Popup Overlay */
 .overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 999;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
 }
 
-/* 팝업 창 */
+/* Login Popup */
 .login-popup {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #fff;
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
+  background: #ffffff; /* 흰색 배경 */
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 400px;
+  padding: 1.5rem;
   text-align: center;
+  z-index: 1001;
 }
 
 .login-popup h2 {
   font-size: 1.5rem;
-  margin-bottom: 15px;
-  color: #333;
+  color: #1368bd; /* 파란색 */
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.login-popup p {
+  font-size: 1rem;
+  color: #333333;
+  margin-bottom: 1.5rem;
 }
 
 .login-popup button {
-  margin: 10px;
-  padding: 10px 20px;
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  background-color: #85725d;
+  transition: background-color 0.3s ease;
+  margin-bottom: 0.8rem;
   color: white;
+}
+
+/* Primary Button (로그인) */
+.login-popup button:nth-of-type(1) {
+  background-color: #1089ff; /* 파란색 */
+}
+
+.login-popup button:nth-of-type(1):hover {
+  background-color: #0d74cc; /* 더 짙은 파란색 */
+}
+
+/* Secondary Button (회원가입) */
+.login-popup button:nth-of-type(2) {
+  background-color: #1089ff; /* 노란색 */
+}
+
+.login-popup button:nth-of-type(2):hover {
+  background-color: #0d74cc; /* 더 짙은 노란색 */
+}
+
+/* Progress Bar */
+.survey-progress {
+  margin-bottom: 2rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #1089ff;
+  transition: width 0.3s ease;
+}
+
+/* Survey Header */
+.survey-header h2 {
+  font-size: 1.8rem;
+  color: #1368bd;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.survey-header p {
   font-size: 1rem;
-  transition: background-color 0.3s, transform 0.3s;
+  color: #666;
 }
 
-.login-popup button:hover {
-  background-color: #85725d;
-  transform: scale(1.05);
+/* Survey Content */
+.survey-content {
+  padding: 1.5rem;
+  border-radius: 12px;
+  background-color: #f9f9f9;
 }
 
+.question-container h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.options-container {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.option-button {
+  padding: 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #ffffff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #333;
+}
+
+.option-button:hover {
+  border-color: #1089ff;
+  background-color: #f0f8ff;
+}
+
+.option-button.selected {
+  border-color: #1089ff;
+  background-color: #e6f4ff;
+  color: #1368bd;
+  font-weight: bold;
+}
+
+/* Navigation Buttons */
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+}
+
+.nav-button {
+  padding: 0.8rem 2rem;
+  border: 2px solid #1089ff;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  background-color: white;
+  color: #1089ff;
+  transition: all 0.3s ease;
+}
+
+.nav-button:hover {
+  background-color: #bdddfe;
+}
+
+.nav-button:disabled {
+  border-color: #cccccc;
+  background-color: #ffcccc;
+  color: #666666;
+  cursor: not-allowed;
+}
+
+/* Submit Button */
+.submit-button {
+  padding: 0.8rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  background-color: #1089ff;
+  color: white;
+}
+
+.submit-button:hover {
+  background-color: #0d74cc;
+}
+
+.submit-button:disabled {
+  background-color: #ffffff;
+  color: #1089ff;
+  cursor: not-allowed;
+}
+
+/* Survey Completion */
+.survey-completion {
+  text-align: center;
+}
+
+.survey-completion h2 {
+  font-size: 1.8rem;
+  color: #1368bd;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.survey-completion p {
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.recommendation-button {
+  padding: 1rem 2rem;
+  background-color: #1089ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.recommendation-button:hover {
+  background-color: #0d74cc;
+}
+
+.recommendation-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
 </style>

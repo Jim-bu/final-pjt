@@ -258,7 +258,7 @@ onMounted(() => {
   height: 100px;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid #e4c089;
+  border: 3px solid #1089ff;
   background-color: #f5f5f5;
 }
 
@@ -274,8 +274,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #e4c089;
-  color: white;
+  background-color: #f8feff;
+  color: #1089ff;
   font-size: 2rem;
   font-weight: bold;
 }

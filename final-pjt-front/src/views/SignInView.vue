@@ -5,13 +5,13 @@
     <v-form @submit.prevent="logIn" @keypress.enter="logIn">
       <v-text-field
         variant="outlined"
-        color="#A58E74"
+        color="#1089ff"
         label="아이디"
         v-model="username"
       ></v-text-field>
       <v-text-field
         variant="outlined"
-        color="#A58E74"
+        color="#1089ff"
         :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
         :type="show ? 'text' : 'password'"
         label="비밀번호"
@@ -21,7 +21,7 @@
       <div v-if="errorMessage" class="warning text-red">
         <p>{{ errorMessage }}</p>
       </div>
-      <v-btn block variant="flat" color="#A58E74" @click.prevent="logIn">
+      <v-btn block variant="flat" color="#1089ff" @click.prevent="logIn">
         Sign in
       </v-btn>
     </v-form>
@@ -74,32 +74,77 @@ const logIn = async () => {
 
 <style scoped>
 .container {
-  max-width: 500px;
+  max-width: 400px;
   margin: 2rem auto;
-  padding: 20px;
-  background-color: #ffefcd;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  background-color: #ffffff; /* 흰색 배경 */
+  border-radius: 12px;
+  border: 1px solid #e0e0e0; /* 연한 회색 경계 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 */
   text-align: center;
 }
 
-form {
-  margin-top: 1rem;
+h1 {
+  font-size: 1.5rem;
+  color: #1089ff; /* 파란색 */
+  margin-bottom: 1.5rem;
+}
+
+h1 .color {
+  color: #1368bd; /* 강조 색상 */
+  font-weight: bold;
+}
+
+v-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* 칸 사이 간격 */
+}
+
+v-text-field {
+  font-size: 1rem;
+  border-radius: 8px;
+  background-color: #f8f8f8; /* 밝은 회색 배경 */
+}
+
+.warning {
+  color: #b00020; /* 경고 메시지 빨간색 */
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
 }
 
 .redirect-link {
   margin-top: 1rem;
   font-size: 0.9rem;
+  color: #666;
 }
 
 .redirect-link span {
   text-decoration: underline;
-  color: #424530;
+  color: #1089ff; /* 파란색 강조 */
   font-weight: bold;
+  cursor: pointer;
 }
 
-.warning {
-  color: #b00020;
-  font-size: 14px;
+.redirect-link span:hover {
+  color: #0d74cc; /* 호버 상태 파란색 */
+}
+
+v-btn {
+  background-color: #1089ff; /* 기본 파란색 버튼 */
+  color: white;
+  font-size: 1rem;
+  border-radius: 8px;
+  padding: 0.8rem;
+  transition: background-color 0.3s ease;
+}
+
+v-btn:hover {
+  background-color: #0d74cc; /* 호버 상태 */
+}
+
+v-btn:disabled {
+  background-color: #cccccc; /* 비활성화 상태 */
+  cursor: not-allowed;
 }
 </style>

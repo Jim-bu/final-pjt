@@ -52,11 +52,19 @@ const renderChart = () => {
     chartInstance.value.destroy();
   }
 
+  // 데이터셋의 색상을 연한 연두색과 연보라색으로 설정
+  const modifiedDatasets = props.datasets.map((dataset, index) => ({
+    ...dataset,
+    backgroundColor: index % 2 === 0 ? "rgba(50, 205, 50, 0.8)" : "rgba(186, 85, 211, 0.8)", // 더 밝고 강한 연두색, 연보라색
+    borderColor: index % 2 === 0 ? "rgba(144, 238, 144, 1)" : "rgba(221, 160, 221, 1)", // 테두리 색상
+    borderWidth: 1,
+  }));
+
   chartInstance.value = new Chart(ctx, {
     type: "bar",
     data: {
       labels: props.labels,
-      datasets: props.datasets,
+      datasets: modifiedDatasets, // 수정된 색상 적용
     },
     options: {
       responsive: true,
@@ -100,6 +108,7 @@ const renderChart = () => {
   });
 };
 
+
 // 데이터 변경 감지
 watch([() => props.labels, () => props.datasets], renderChart, { deep: true });
 
@@ -125,7 +134,7 @@ onBeforeUnmount(() => {
   height: 400px;
   margin: 20px auto;
   padding: 16px;
-  background: #fdf6e3;
+  background: #ffffff;
   border: 1px solid #ccc;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
