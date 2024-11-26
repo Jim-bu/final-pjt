@@ -89,34 +89,33 @@ const router = createRouter({
       name: 'mypage',
       component: MyPageView,
       beforeEnter: (to, from) => {
-        const userStore = useUserStore()
+        const userStore = useUserStore();
         if (!userStore.isLogin) {
-          alert('로그인 후 이용 가능합니다.')
-          return { name: 'signIn'}
+          alert('로그인 후 이용 가능합니다.');
+          return { name: 'login' };
         }
       },
       children: [
         {
           path: '',
           name: 'myPage',
-          component: MyPage
+          component: MyPage,
         },
-        {
-          path: 'update',
-          name: 'userUpdate',
-          component: UserUpdateView
-        },    
-        // {
-        //   path: 'products',
-        //   name: 'productManage',
-        //   component: ProductManage
-        // },
-        // {
-        //   path: 'recommend',
-        //   name: 'productRecommend',
-        //   component: ProductRecommend
-        // }
-      ]
+      ],
+    },
+    {
+      path: '/user/update',
+      name: 'userUpdate',
+      component: UserUpdateView,
+      beforeEnter: (to, from, next) => {
+        const userStore = useUserStore();
+        if (!userStore.isLogin) {
+          alert('로그인이 필요합니다.');
+          next({ name: 'login', query: { redirect: to.fullPath } });
+        } else {
+          next();
+        }
+      },
     },
     {
       path: "/productList",

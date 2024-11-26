@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'chats',
     'markets',
     'surveys',
+    'subscriptions',
     'rest_framework',
     'rest_framework.authtoken',
     'dj_rest_auth',
@@ -198,3 +199,10 @@ REST_AUTH = {
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # 예: Gmail 사용
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'kchanho9773@gmail.com'  # 발신 이메일 주소
+EMAIL_HOST_PASSWORD = 'Cksghsp11@@'  # 이메일 비밀번호 또는 앱 비밀번호
