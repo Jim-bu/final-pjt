@@ -1,56 +1,119 @@
 <template>
   <v-app>
-    <NavBar v-if="!isLoadingScreen" />
-    <chatbotModal v-if="!isLoadingScreen" />
+    <NavBar />
+    <!-- 네비게이션 바 -->
+    <div class="navbar-options" v-if="!isLoadingScreen">
+      <span class="nav-link" @click="goToPage('productList')">상품목록</span>
+      <span class="separator">|</span>
+      <span class="nav-link" @click="goToPage('productcompare')">상품비교</span>
+      <span class="separator">|</span>
+      <span class="nav-link" @click="goToPage('recommendation')">상품추천</span>
+      <span class="separator">|</span>
+      <span class="nav-link" @click="goToPage('nearBank')">근처은행</span>
+    </div>
+
+    <!-- 콘텐츠 영역 -->
     <div class="centered-content">
       <router-view />
       <div class="content-padding"></div>
     </div>
+
+    <!-- 챗봇 모달 -->
+    <chatbotModal v-if="!isLoadingScreen" />
+
+    <!-- 원격 컨트롤 -->
     <Remote />
   </v-app>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import NavBar from './components/NavBar.vue';
-import Remote from './components/Remote.vue';
-import chatbotModal from './components/chatbotModal.vue';
+import { ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import NavBar from "./components/NavBar.vue";
+import Remote from "./components/Remote.vue";
+import chatbotModal from "./components/chatbotModal.vue";
 
-const route = useRoute(); // 현재 라우트를 가져옵니다.
+// 상태 관리
+const route = useRoute();
+const router = useRouter();
 const isLoadingScreen = ref(false);
 
-// 라우트 이름을 감지하여 NavBar 표시 여부를 업데이트
+// 특정 경로에서 로딩 화면 여부 설정
 watch(
   () => route.name,
   (newRouteName) => {
-    isLoadingScreen.value = newRouteName === 'LoadingScreen';
+    isLoadingScreen.value = newRouteName === "LoadingScreen";
   },
-  { immediate: true } // 컴포넌트가 로드될 때 바로 실행
+  { immediate: true }
 );
+
+// 페이지 이동 함수
+const goToPage = (page) => {
+  router.push(`/${page}`);
+};
 </script>
 
-<style>
+<style scoped>
+/* 글로벌 스타일 */
 html, body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  max-width: 600px;
   width: 100%;
   height: 100%;
+  font-family: 'Francois One', sans-serif; /* 글로벌 폰트 */
 }
 
+/* v-app 컨테이너 */
 .v-app {
   display: flex;
   flex-direction: column; /* 위에서 아래로 정렬 */
   align-items: center; /* 수평 중앙 정렬 */
-  min-height: 100vh; /* 화면 전체 높이 채움 */
-  background-color: #f5f5f5; /* 배경 색상 */
+  min-height: 100vh; /* 화면 전체 높이 */
+  background-color: #f5f5f5; /* 연한 회색 배경 */
   overflow-x: hidden;
 }
 
+/* 네비게이션 바 */
+.navbar-options {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px; /* 옵션 간 간격 */
+  padding: 15px 0;
+  background-color: #FFFFFF; /* 흰색 배경 */
+  border-bottom: 1px solid #E0E0E0; /* 연한 회색 구분선 */
+  z-index: 999;
+}
+
+.nav-link {
+  font-size: 16px;
+  font-weight: bold;
+  color: #4D4D4D; /* 검은색 텍스트 */
+  cursor: pointer;
+  text-decoration: none; /* 밑줄 제거 */
+}
+
+.nav-link:hover {
+  color: #3366CC; /* Hover 시 파란색 */
+}
+
+/* | 기호 스타일 */
+.separator {
+  color: #BFBFBF; /* 회색 구분선 */
+  font-size: 16px;
+}
+
+/* 콘텐츠 컨테이너 */
 .centered-content {
   width: 100%;
-  max-width: 600px; /* 콘텐츠 너비를 600px로 제한 */
+  max-width: 600px;
   margin: 0 auto; /* 가운데 정렬 */
   padding: 16px;
   box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
@@ -73,14 +136,15 @@ html, body {
   }
 }
 
+/* 푸터 */
 footer {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 100px; /* 네비게이션 바 높이 */
-  background-color: #424530; /* Fern 색상 */
-  color: #FFEFCD; /* Warm Ivory 색상 */
+  height: 60px;
+  background-color: #424530; /* 어두운 색상 */
+  color: #FFEFCD; /* 텍스트 밝은 색상 */
   text-align: center;
   line-height: 60px;
   z-index: 10;
