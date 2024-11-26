@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <NavBar />
+    <NavBar v-if="!isLoadingScreen" />
     <!-- 네비게이션 바 -->
     <div class="navbar-options" v-if="!isLoadingScreen">
       <span class="nav-link" @click="goToPage('productList')">상품목록</span>
@@ -22,7 +22,7 @@
     <chatbotModal v-if="!isLoadingScreen" />
 
     <!-- 원격 컨트롤 -->
-    <Remote />
+    <Remote v-if="!isLoadingScreen" />
   </v-app>
 </template>
 
