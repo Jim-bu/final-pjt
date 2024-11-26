@@ -41,3 +41,14 @@ def user_update(request):
             "updated_data": updated_user
         }, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def user_delete(request):
+    user = request.user
+    try:
+        user.delete()  # 사용자 계정 삭제
+        return Response({"message": "Account deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

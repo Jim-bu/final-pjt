@@ -6,7 +6,9 @@ from .models import ExchangeList
 from .serializers import ExchangeListSerializer
 import requests
 
+# API_URL = f'http://www.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey={CURRENCIES_KEY}&data=AP01'
 API_URL = f'http://www.koreaexim.go.kr/site/program/financial/exchangeJSON?authkey={CURRENCIES_KEY}&searchdate=20241120&data=AP01'
+
 
 @api_view(['GET'])
 def exchange_fetch_data(request):
