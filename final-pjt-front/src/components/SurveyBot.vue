@@ -289,12 +289,16 @@ const goToRecommendations = () => {
 }
 
 const goToLogin = () => {
-  router.push('/login')
-}
+  if (router.currentRoute.value.name !== 'login') {
+    router.push({ name: 'login', query: { redirect: '/survey' } });
+  }
+};
 
 const goToSignup = () => {
-  router.push('/signup')
-}
+  if (router.currentRoute.value.name !== 'signup') {
+    router.push({ name: 'signup', query: { redirect: '/survey' } });
+  }
+};
 </script>
 
 

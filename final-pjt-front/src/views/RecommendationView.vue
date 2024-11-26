@@ -135,23 +135,25 @@ const closeDetailPopup = () => {
 
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(() => {
-  loading.value = true;
-  const surveyCompletedFromStorage = localStorage.getItem("surveyCompleted") === "true";
+  const isAuthenticated = localStorage.getItem("token") !== null; // 로그인 여부 확인
 
-  if (!surveyCompletedFromStorage) {
-    showSurveyPopup.value = true;
-    loading.value = false;
+  if (!isAuthenticated) {
+    console.log("User not authenticated. Showing popup...");
+    showSurveyPopup.value = true; // 팝업 표시
   } else {
-    userStore.surveyCompleted = true;
-    fetchRecommendations();
+    loading.value = true;
+    const surveyCompletedFromStorage = localStorage.getItem("surveyCompleted") === "true";
+    
+    if (!surveyCompletedFromStorage) {
+      showSurveyPopup.value = true;
+      loading.value = false;
+    } else {
+      userStore.surveyCompleted = true;
+      fetchRecommendations();
+    }
   }
 });
 </script>
-
-<style scoped>
-/* 스타일은 이전과 동일 */
-</style>
-
 
 
 <style scoped>
@@ -230,32 +232,41 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 1000; /* 팝업을 위에 표시 */
 }
 
-.popup-content {
-  background: #fff;
-  padding: 24px;
-  border-radius: 12px;
-  max-width: 90%;
+.popup {
+  background: white;
+  padding: 20px 30px;
+  border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  text-align: center;
 }
 
-.popup-content button {
-  margin-top: 20px;
+.popup h4 {
+  margin-bottom: 20px;
+  font-size: 1.2rem;
+  color: #333; /* 텍스트 색상 */
+}
+
+.popup button {
   padding: 10px 20px;
-  background-color: #2a5552;
+  font-size: 1rem;
+  background-color: #2a5552; /* 어두운 초록색 */
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.popup-content button:hover {
-  background-color: #2a5552;
+.popup button:hover {
+  background-color: #1d3e3c; /* 버튼 hover 시 더 어두운 초록색 */
+  transform: scale(1.05); /* 버튼 살짝 확대 */
 }
 </style>
+
