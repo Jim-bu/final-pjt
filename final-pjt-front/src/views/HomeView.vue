@@ -140,6 +140,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  background-color: #FFFFFF; /* 흰색 배경 */
 }
 
 /* 캐러샐 섹션 */
@@ -151,29 +152,30 @@ onMounted(() => {
 
 /* 날짜, 증시, 금융 뉴스 박스 */
 .info-box {
-  background-color: rgba(240, 240, 240, 0.9);
+  background-color: #F2F6FC; /* 옅은 파란색 배경 */
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 살짝 줄인 그림자 */
   display: flex;
   flex-direction: column;
   gap: 16px;
+  border-left: 4px solid #6CA6CD; /* 강조 선 추가 */
 }
 
 .date {
   font-size: 18px;
   font-weight: bold;
-  color: #333;
+  color: #191a1b; /* 파란색 텍스트 */
 }
 
 /* 구분선 */
 .divider {
   height: 1px;
-  background-color: #ccc; /* 구분선 색상 */
+  background-color: #BFD7F2; /* 연한 파란색 구분선 */
   margin: 20px 0; /* 위아래 여백 */
 }
 
-/* 증시 및 뉴스 리스트 */
+/* 증시 리스트 */
 .stock-list {
   list-style: none;
   padding: 0;
@@ -191,38 +193,51 @@ onMounted(() => {
 }
 
 .change-icon.up {
-  color: #3a774e; /* 초록색 */
+  color: #3A774E; /* 초록색 */
 }
 
 .change-icon.down {
-  color: #d9534f; /* 빨간색 */
+  color: #D9534F; /* 빨간색 */
 }
 
+/* 뉴스 리스트 */
 .news-list {
   list-style: none;
   padding: 0;
+}
+
+.news-item h4 {
+  font-size: 16px;
+  font-weight: bold;
+  color: #000000; /* 뉴스 제목 파란색 */
+}
+
+.news-item p {
+  font-size: 14px;
+  color: #4D4D4D; /* 본문 기본 텍스트 */
 }
 
 .news-button {
   margin-top: 10px;
   padding: 12px;
   font-size: 14px;
-  background-color: #3a3a3a;
-  color: white;
+  background-color: #3366CC; /* 파란색 버튼 */
+  color: #FFFFFF; /* 흰색 텍스트 */
   border: none;
   border-radius: 8px;
   cursor: pointer;
 }
 
 .news-button:hover {
-  background-color: #2b2b2b;
+  background-color: #274B8F; /* Hover 시 짙은 파란색 */
 }
 
 /* 지도 박스 */
 .map-box {
-  background-color: rgba(240, 240, 240, 0.9);
+  background-color: #F2F6FC; /* 옅은 파란색 배경 */
   padding: 16px;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #6CA6CD; /* 강조 선 추가 */
 }
 </style>

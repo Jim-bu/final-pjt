@@ -76,7 +76,7 @@ onMounted(() => {
   right: 16px;
   padding: 12px 20px;
   font-size: 14px;
-  background-color: #54613b;
+  background-color: #3366CC;
   color: white;
   border: none;
   border-radius: 24px;
@@ -87,7 +87,7 @@ onMounted(() => {
 }
 
 .find-bank-button:hover {
-  background-color: #31533c;
+  background-color: #274B8F;
 }
 
 </style>
