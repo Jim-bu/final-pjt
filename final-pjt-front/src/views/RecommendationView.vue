@@ -1,5 +1,6 @@
 <template>
   <div class="recommendation-page">
+    <!-- 설문조사 팝업 -->
     <div v-if="showSurveyPopup" class="popup-overlay">
       <div class="popup">
         <h4>추천 목록을 보려면 먼저 설문조사를 완료해주세요.</h4>
@@ -7,13 +8,16 @@
       </div>
     </div>
 
-    <template v-else>
+    <!-- 추천 목록 -->
+    <div v-else>
       <h1>맞춤 금융 상품 추천</h1>
 
+      <!-- 로딩 상태 -->
       <div v-if="loading" class="loading">
         로딩 중...
       </div>
 
+      <!-- 추천 데이터 -->
       <div v-else>
         <!-- 추천 예금 상품 -->
         <div v-if="recommendedProducts.deposits.length > 0" class="product-section">
@@ -54,20 +58,16 @@
           </button>
         </div>
       </div>
-    </template>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useUserStore } from "@/stores/users";
 import { useRouter } from "vue-router";
 import axios from "axios";
-import { useProductStore } from "@/stores/product";
 
-const userStore = useUserStore();
 const router = useRouter();
-const productStore = useProductStore();
 
 const loading = ref(true);
 const recommendedProducts = ref({
@@ -91,9 +91,17 @@ const fetchRecommendations = async () => {
       deposits: response.data.deposit_recommendations || [],
       savings: response.data.saving_recommendations || [],
     };
+
+    // 추천 데이터가 없는 경우 설문조사 팝업 표시
+    if (
+      recommendedProducts.value.deposits.length === 0 &&
+      recommendedProducts.value.savings.length === 0
+    ) {
+      showSurveyPopup.value = true;
+    }
   } catch (error) {
     console.error("Recommendation fetch failed:", error.response || error.message);
-    alert("추천 데이터를 가져오는 중 문제가 발생했습니다.");
+    // alert("추천 데이터를 가져오는 중 문제가 발생했습니다.");
   } finally {
     loading.value = false;
   }
@@ -114,21 +122,33 @@ const goToSurvey = () => {
 };
 
 // 컴포넌트 마운트 시 데이터 로드
-onMounted(() => {
+onMounted(async () => {
   const isAuthenticated = localStorage.getItem("token") !== null; // 로그인 여부 확인
 
   if (!isAuthenticated) {
     console.log("User not authenticated. Showing popup...");
     showSurveyPopup.value = true; // 팝업 표시
-  } else {
-    const surveyCompletedFromStorage = localStorage.getItem("surveyCompleted") === "true";
+    loading.value = false;
+    return;
+  }
 
-    if (!surveyCompletedFromStorage) {
-      showSurveyPopup.value = true; // 설문조사 요청 팝업
-      loading.value = false;
-    } else {
-      fetchRecommendations(); // 추천 데이터 로드
-    }
+  const surveyCompletedFromStorage = localStorage.getItem("surveyCompleted") === "true";
+
+  if (!surveyCompletedFromStorage) {
+    console.log("Survey not completed. Showing popup...");
+    showSurveyPopup.value = true; // 설문조사 요청 팝업
+    loading.value = false;
+    return;
+  }
+
+  await fetchRecommendations();
+
+  if (
+    recommendedProducts.value.deposits.length === 0 &&
+    recommendedProducts.value.savings.length === 0
+  ) {
+    console.log("No recommended products. Showing popup...");
+    showSurveyPopup.value = true; // 추천 데이터가 없는 경우 팝업 표시
   }
 });
 </script>

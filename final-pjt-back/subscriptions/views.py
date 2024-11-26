@@ -2,10 +2,12 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.parsers import JSONParser
 from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_405_METHOD_NOT_ALLOWED
+from finance_recommendation.settings import RESEND_API_KEY
 from .models import SubscribedProduct
 from .serializers import SubscribedProductSerializer
+import resend
 
-## 금융 상품 구독/취소 API
+
 @api_view(['POST'])
 def toggle_subscribed_product(request):
     if request.method == 'POST':
@@ -37,15 +39,34 @@ def toggle_subscribed_product(request):
 
                 serializer = SubscribedProductSerializer(subscribed_product)
 
-                # 터미널에 이메일 내용 출력
-                email_message = (
-                    f"구독 완료: 금융 상품 알림\n"
-                    f"안녕하세요, {request.user.name or request.user.username}님.\n\n"
-                    f"'{product_name}' 금융 상품에 성공적으로 구독하셨습니다.\n"
-                    f"자세한 내용은 프로필 페이지에서 확인하실 수 있습니다.\n\n"
-                    f"감사합니다."
+                # 이메일 내용
+                subject = "구독 완료 알림"
+                html_content = (
+                    f"<h1>안녕하세요, {request.user.name or request.user.username}님.</h1>"
+                    f"<p>'{product_name}' 금융 상품을 성공적으로 구독하셨습니다.</p>"
+                    f"<p>자세한 내용은 프로필 페이지에서 확인하실 수 있습니다.</p>"
+                    f"<p>감사합니다.</p>"
                 )
-                print(email_message)
+                from_email = "onboarding@resend.dev"  # 발신 이메일 주소
+                to_email = request.user.email  # 수신 이메일 주소
+
+                # Resend 이메일 전송
+                try:
+                    resend.api_key = RESEND_API_KEY  # Resend API 키
+                    r = resend.Emails.send(
+                        {
+                            "from": from_email,
+                            "to": to_email,
+                            "subject": subject,
+                            "html": html_content,
+                        }
+                    )
+                except Exception as e:
+                    print(f"Resend Email Error: {e}")
+                    return Response(
+                        {"error": "구독은 완료되었지만 이메일 전송에 실패했습니다."},
+                        status=HTTP_201_CREATED,
+                    )
 
                 return Response(serializer.data, status=HTTP_201_CREATED)
 
