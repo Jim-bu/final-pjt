@@ -1,6 +1,27 @@
 <template>
   <div v-if="userStore.isLogin" class="update-page">
-    <h2>회원 정보 수정</h2>
+    <header class="d-flex align-center mb-7">
+      <RouterLink
+        :to="{ name: 'myPage', params: { username: userStore.userInfo?.username }}"
+        exact-active-class="active"
+      >
+        회원 정보 관리
+      </RouterLink>
+      <p>|</p>
+      <div class="button-container">
+      <RouterLink
+        :to="{ name: 'userUpdate' }"
+        class="edit-button"
+      >
+        회원 정보 수정
+      </RouterLink>
+      
+        <button class="delete-button" @click="handleDeleteAccount">
+          회원 탈퇴
+        </button>
+      </div>
+    </header>
+
     <div v-if="loading" class="loading">
       데이터를 불러오는 중...
     </div>
@@ -268,7 +289,7 @@ const handleSubmit = async () => {
 
     await userStore.updateUserInfo(formDataToSend);
     await userStore.getUserInfo();
-    alert('회원 정보가 성공적으로 수정되었습니다.');
+    // alert('회원 정보가 성공적으로 수정되었습니다.');
     router.push({ 
       name: 'myPage', 
       params: { username: userStore.userInfo.username } 
@@ -306,7 +327,32 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-/* 기존 스타일 유지 */
+header {
+  gap: 10px;
+  font-size: 17px;
+}
+
+header a {
+  font-weight: 600;
+  font-size: 20px;
+  letter-spacing: -1px;
+  color: #222;
+  text-decoration: none;
+}
+
+.delete-button {
+  margin-left: 10px;
+  background-color: #c0392b;
+  color: white;
+  border: none;
+  padding: 5px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background-color: #a93226;
+}
 .update-page {
   max-width: 800px;
   margin: 0 auto;
@@ -352,7 +398,6 @@ onBeforeUnmount(() => {
   background-color: #d8b679;
 }
 
-/* 나머지 기존 스타일 유지 */
 .update-form {
   display: flex;
   flex-direction: column;

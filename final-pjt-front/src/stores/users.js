@@ -102,6 +102,29 @@ export const useUserStore = defineStore('users', () => {
     }
   };
 
+  // 회원 탈퇴
+  const deleteAccount = async function () {
+    if (!token.value) return;
+  
+    try {
+      await axios({
+        method: "delete",
+        url: `${API_URL}/accounts/user_delete/`,
+        headers: {
+          Authorization: `Token ${token.value}`,
+        },
+      });
+      // 성공적으로 탈퇴되면 로컬 저장소 초기화
+      token.value = null;
+      userInfo.value = null;
+      localStorage.removeItem("token");
+      localStorage.removeItem("userInfo");
+    } catch (err) {
+      console.error("회원 탈퇴 실패:", err);
+      throw new Error("회원 탈퇴 중 문제가 발생했습니다.");
+    }
+  };  
+
   // 회원가입
   const signUp = async function (payload) {
     const { username, name, email, password1, password2 } = payload;
@@ -131,33 +154,21 @@ export const useUserStore = defineStore('users', () => {
     }
   };
 
-  const updateUserInfo = async function (updateData) {
+  const updateUserInfo = async (formData) => {
     if (!token.value) return;
-    
-    isLoading.value = true;
-    error.value = null;
-  
+
     try {
-      const response = await axios({
-        method: 'PATCH',
-        url: `${API_URL}/accounts/user_update/`,
+      const response = await axios.patch(`${API_URL}/accounts/user_update/`, formData, {
         headers: {
           Authorization: `Token ${token.value}`,
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
-        data: updateData,
       });
-      
-      // 즉시 사용자 정보를 다시 가져오기
-      await getUserInfo();
-      
-      return response.data;
+      userInfo.value = response.data.updated_data;
+      alert("회원 정보가 성공적으로 수정되었습니다.");
     } catch (err) {
-      console.error('사용자 정보 업데이트 실패:', err);
-      error.value = err.response?.data || '사용자 정보 업데이트에 실패했습니다.';
-      throw err;
-    } finally {
-      isLoading.value = false;
+      console.error("Failed to update user info:", err);
+      alert("회원 정보 수정에 실패했습니다.");
     }
   };
     
@@ -179,5 +190,6 @@ export const useUserStore = defineStore('users', () => {
     logIn,
     logOut,
     updateUserInfo,
+    deleteAccount,
   };
 });

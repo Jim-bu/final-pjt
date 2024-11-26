@@ -42,6 +42,9 @@ NAVER_CLIENT_SECRET = 'aKTPHptBFv'
 # OPENAI GPT API 키
 CHATS_KEY = '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'
 
+# RESEND API 키
+RESEND_API_KEY = "re_dj23NUXw_5eZwysN8YriwTozxd3HTKiEj"
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -59,6 +62,7 @@ INSTALLED_APPS = [
     'chats',
     'markets',
     'surveys',
+    'subscriptions',
     'rest_framework',
     'rest_framework.authtoken',
     'dj_rest_auth',
@@ -198,3 +202,11 @@ REST_AUTH = {
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'kchanho9773@gmail.com'  # 고정값 (SendGrid에서 제공)
+EMAIL_HOST_PASSWORD = 'TFZMUYJ6G9LJCTZKASZDHA9R'  # SendGrid API 키
+DEFAULT_FROM_EMAIL = 'kchanho9773@gmail.com'  # 기본 발신 이메일

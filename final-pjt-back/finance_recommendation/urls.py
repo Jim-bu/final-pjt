@@ -35,4 +35,5 @@ urlpatterns = [
     path('chats/', include('chats.urls')),
     path("markets/", include("markets.urls")),
     path('recommendations/', include('recommendations.urls')),
+    path('subscriptions/', include('subscriptions.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

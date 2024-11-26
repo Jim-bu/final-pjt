@@ -24,7 +24,6 @@
         v-for="product in paginatedProducts"
         :key="product.fin_prdt_cd"
         class="product-card"
-        @click="showDetail(product)"
       >
         <div class="product-header">
           <span class="product-type">
@@ -37,7 +36,15 @@
             가입기간: {{ extractJoinPeriod(product.etc_note) }}
           </p>
         </div>
-        <button class="detail-button">상세 보기</button>
+        <button class="detail-button" @click="showDetail(product)">
+          상세 보기
+        </button>
+        <button
+          class="subscribe-button"
+          @click="toggleSubscription(product)"
+        >
+          {{ isSubscribed(product) ? "구독 취소" : "가입하기" }}
+        </button>
       </div>
     </div>
 
@@ -71,35 +78,32 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useProductStore } from "../stores/product";
+import { useUserStore } from "../stores/users";
 
 const productStore = useProductStore();
+const userStore = useUserStore();
 
-// 데이터 로드
 onMounted(async () => {
   await productStore.saveDeposits();
   await productStore.saveSavings();
   await productStore.fetchDeposits();
   await productStore.fetchSavings();
+  await productStore.fetchSubscriptions(); // 구독 정보 가져오기
 });
 
-
-
-// 탭 상태
 const activeTab = ref("deposit");
-
-// 페이지네이션 상태
 const currentPage = ref(1);
-const itemsPerPage = 10; // 페이지당 항목 수
+const itemsPerPage = 10;
 
-// 상품 목록
 const products = computed(() =>
   activeTab.value === "deposit"
     ? productStore.deposits
     : productStore.savings
 );
 
-// 페이지네이션 처리
-const totalPages = computed(() => Math.ceil(products.value.length / itemsPerPage));
+const totalPages = computed(() =>
+  Math.ceil(products.value.length / itemsPerPage)
+);
 const paginatedProducts = computed(() =>
   products.value.slice(
     (currentPage.value - 1) * itemsPerPage,
@@ -107,18 +111,30 @@ const paginatedProducts = computed(() =>
   )
 );
 
-// 상세 보기
 const selectedProduct = ref(null);
 const showDetail = (product) => {
   selectedProduct.value = product;
 };
 
-// 팝업 닫기
 const closeDetail = () => {
   selectedProduct.value = null;
 };
 
-// 가입기간 추출 유틸리티 함수
+const toggleSubscription = async (product) => {
+  if (!userStore.isLogin) {
+    alert("로그인이 필요합니다.");
+    return;
+  }
+
+  const response = await productStore.toggleSubscription(product);
+  // alert(response.message);
+};
+
+const isSubscribed = (product) =>
+  productStore.subscriptions.some(
+    (subscription) => subscription.product_id === product.fin_prdt_cd
+  );
+
 const extractJoinPeriod = (note) => {
   const match = note?.match(/가입기간: (.+?)\n/);
   return match ? match[1] : "정보 없음";
@@ -229,5 +245,19 @@ const extractJoinPeriod = (note) => {
   border-radius: 12px;
   max-width: 90%;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.subscribe-button {
+  margin-top: 8px;
+  background-color: #1d72b8;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.subscribe-button:hover {
+  background-color: #155a92;
 }
 </style>

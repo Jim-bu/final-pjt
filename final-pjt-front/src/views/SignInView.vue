@@ -18,9 +18,8 @@
         v-model="password"
         @click:append="show = !show"
       ></v-text-field>
-      <div v-show="!isRight" class="warning text-red">
-        <p>아이디(로그인 전용 아이디) 또는 비밀번호를 잘못 입력했습니다.</p>
-        <p>입력하신 내용을 다시 확인해주세요.</p>
+      <div v-if="errorMessage" class="warning text-red">
+        <p>{{ errorMessage }}</p>
       </div>
       <v-btn block variant="flat" color="#A58E74" @click.prevent="logIn">
         Sign in
@@ -50,21 +49,19 @@ const username = ref('');
 const password = ref('');
 const isRight = ref(true);
 
+const errorMessage = ref('');
+
 const logIn = async () => {
   try {
     const payload = { username: username.value, password: password.value };
     const isLoggedIn = await userStore.logIn(payload);
-    console.log('1')
-    console.log(isLoggedIn)
 
     if (isLoggedIn) {
       // 로그인 성공 후 리디렉트
-      console.log('2')
       const redirectPath = route.query.redirect || '/survey';
       router.push({ name: 'Survey' });
     } else {
       // 로그인 실패 시
-      console.log('3')
       errorMessage.value = '로그인에 실패했습니다. 아이디와 비밀번호를 확인하세요.';
     }
   } catch (error) {
@@ -72,7 +69,6 @@ const logIn = async () => {
     errorMessage.value = '서버에 문제가 발생했습니다. 나중에 다시 시도하세요.';
   }
 };
-
 
 </script>
 
