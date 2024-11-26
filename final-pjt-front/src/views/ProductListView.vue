@@ -25,11 +25,6 @@
         :key="product.fin_prdt_cd"
         class="product-card"
       >
-        <div class="product-header">
-          <span class="product-type">
-            상품 형태: {{ activeTab === 'deposit' ? "예금" : "적금" }}
-          </span>
-        </div>
         <div class="product-body">
           <h3 class="product-name">{{ product.fin_prdt_nm }}</h3>
           <p class="product-period">
@@ -45,8 +40,7 @@
           :class="{ 'subscribed-yellow': isSubscribed(product) }"
           @click="toggleSubscription(product)"
         >
-          >
-            {{ isSubscribed(product) ? "구독 취소" : "가입하기" }}
+          {{ isSubscribed(product) ? "구독 취소" : "가입하기" }}
         </button>
       </div>
       </div>

@@ -1,11 +1,11 @@
 <template>
   <div class="community-page">
     <h1>상품 평가 게시판</h1>
-    <button @click="refreshReviews" class="refresh-button">새로고침</button>
+    <!-- <button @click="refreshReviews" class="refresh-button">새로고침</button> -->
 
     <!-- 의견 작성 폼 -->
     <div v-if="isLoggedIn" class="opinion-form">
-      <h2>{{ isEditing ? '상품 평가 수정' : '상품 평가 작성' }}</h2>
+      <!-- <h2>{{ isEditing ? '상품 평가 수정' : '상품 평가 작성' }}</h2> -->
 
       <!-- 상품 유형 선택 -->
       <div class="product-type">
@@ -58,7 +58,7 @@
           </span>
         </div>
       </div>
-
+      <br>
       <div class="form-buttons">
         <button class="submit-button" @click="handleSubmit">
           {{ isEditing ? '수정하기' : '작성하기' }}
@@ -85,7 +85,7 @@
         <div class="review-header">
           <h3>{{ review.title }}</h3>
           <div class="review-meta">
-            <span class="author">작성자: {{ review.username }}</span>
+            <span class="author">작성자: {{ review.username }}</span><span> / </span>
             <span class="date">{{ formatDate(review.created_at) }}</span>
             <span v-if="review.updated_at !== review.created_at" class="edited">(수정됨)</span>
           </div>
@@ -130,8 +130,8 @@
                 <p>{{ comment.content }}</p>
               </div>
               <div v-if="comment.is_owner" class="comment-actions">
-                <button @click="editComment(review.id, comment)">수정</button>
-                <button @click="deleteComment(review.id, comment.id)">삭제</button>
+                <button @click="editComment(review.id, comment)"><u>수정</u></button><span> / </span>
+                <button @click="deleteComment(review.id, comment.id)"><u>삭제</u></button>
               </div>
             </div>
 

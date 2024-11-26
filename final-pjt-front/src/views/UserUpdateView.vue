@@ -339,6 +339,7 @@ header a {
   color: #222;
   text-decoration: none;
   transition: font-size 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
 }
 
 header a:hover {
@@ -350,7 +351,8 @@ header a:hover {
 .delete-button {
   border: none;
   background: none;
-  margin-left: 200px;
+  margin-left: 70%;
+  white-space: nowrap;
   color: #e74c3c; /* 빨간색 */
   text-decoration: underline;
   font-size: 14px;

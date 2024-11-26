@@ -216,7 +216,7 @@ const signUp = async () => {
   font-size: 1.5rem;
   color: #1089ff; /* 파란색 */
   font-weight: bold;
-  margin-bottom: 1rem;
+  /* margin-bottom: 1rem; */
 }
 
 .v-card-title .color {
@@ -249,10 +249,10 @@ form {
 
 /* .checkbox {
   text-align: start;
-  margin-bottom: 0rem; /* 약관 동의 칸 사이 간격 최소화 */
-/* }
+  margin-bottom: 0rem;
+} */
 
-.checkbox .v-checkbox {
+/* .checkbox .v-checkbox {
   margin: 0; /* 칸 사이 여백 제거 */
   /* padding: 0; /* 간격 최소화 */
 /* } */

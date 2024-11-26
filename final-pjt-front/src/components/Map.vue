@@ -125,15 +125,27 @@ const displayMarkers = (places: any[]) => {
     });
 
     kakao.maps.event.addListener(marker, "click", () => {
-      infowindow.value.setContent(`
-        <div style="padding:5px;">
-          <strong>${place.place_name}</strong><br>
-          도로명 주소: ${place.road_address_name || "정보 없음"}<br>
-          지번 주소: ${place.address_name || "정보 없음"}<br>
-          전화번호: ${place.phone || "정보 없음"}<br>
-          <a href="${place.place_url}" target="_blank">자세히 보기</a>
+    infowindow.value.setContent(`
+      <div style="font-size:14px; font-family:Arial, sans-serif; color:#333; line-height:1.6;">
+        <div style="padding:15px; background-color:#ffffff; border:1px solid #d0e6ff; border-radius:10px; box-shadow:0 4px 8px rgba(0, 0, 0, 0.1); max-width:300px;">
+          <strong style="font-size:16px; font-weight:bold; color:#1089FF; margin-bottom:8px; display:block;">
+            ${place.place_name}
+          </strong>
+          <div style="margin-bottom:10px;">
+            <span><strong>도로명 주소:</strong> ${place.road_address_name || "정보 없음"}</span><br>
+            <span><strong>지번 주소:</strong> ${place.address_name || "정보 없음"}</span><br>
+          </div>
+          <div style="margin-bottom:8px;">
+            <strong>전화번호:</strong> ${place.phone || "정보 없음"}
+          </div>
+          <div>
+            <a href="${place.place_url}" target="_blank" style="color:#0d74cc; text-decoration:none; font-weight:bold; transition:color 0.3s ease;">
+              자세히 보기
+            </a>
+          </div>
         </div>
-      `);
+      </div>
+    `);
       infowindow.value.open(map.value, marker);
     });
 

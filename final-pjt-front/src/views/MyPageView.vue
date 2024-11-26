@@ -30,7 +30,7 @@
       <h2>내가 가입한 금융 상품</h2>
       <ul v-if="subscriptions.length > 0">
         <li v-for="subscription in subscriptions" :key="subscription.id">
-          {{ subscription.product_name }} (가입일: {{ subscription.subscribed_at }})
+          {{ subscription.product_name }}z
           <button @click="cancelSubscription(subscription)">구독 취소</button>
         </li>
       </ul>
@@ -125,9 +125,10 @@ button:hover {
 .delete-button {
   border: none;
   background: none;
-  margin-left: 230px;
+  margin-left: 70%;
   color: #e74c3c; /* 빨간색 */
   text-decoration: underline;
+  white-space: nowrap;
   font-size: 14px;
   cursor: pointer;
 }
@@ -205,6 +206,8 @@ a.active {
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  justify-content: center;
+  margin-left: 5%;
 }
 
 .subscriptions h2 {

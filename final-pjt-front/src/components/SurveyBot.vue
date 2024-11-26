@@ -12,7 +12,7 @@
     <div v-else>
       <div v-if="!surveyCompleted" class="survey-bot">
         <div class="survey-header">
-          <h2>맞춤형 금융 상품 추천을 위한 설문조사</h2>
+          <h2>맞춤 금융 상품 추천을 위한 설문조사</h2>
           <p>{{ currentSection.title }}</p>
         </div>
 

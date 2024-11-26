@@ -22,7 +22,7 @@
         <p>{{ errorMessage }}</p>
       </div>
       <v-btn block variant="flat" color="#1089ff" @click.prevent="logIn">
-        Sign in
+        Log in
       </v-btn>
     </v-form>
 
