@@ -70,9 +70,13 @@
     </div>
 
     <div v-else class="login-message">
-      <p>리뷰를 작성하려면 로그인이 필요합니다.</p>
-      <router-link to="/login" class="login-link">로그인하기</router-link>
+    <div class="popup-overlay">
+      <div class="popup-content">
+        <p class="message-text">리뷰를 작성하려면 로그인이 필요합니다.</p>
+        <router-link to="/login" class="login-button">로그인하기</router-link>
+      </div>
     </div>
+  </div>
 
     <!-- 게시물 목록 -->
     <div class="opinion-list">
@@ -508,5 +512,52 @@ h1 {
   padding: 8px;
   border: 1px solid #ddd;
   border-radius: 8px;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background-color: #ffffff; /* 흰색 배경 */
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 그림자 */
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.message-text {
+  font-size: 1.2rem;
+  color: #333333;
+  margin-bottom: 1.5rem;
+}
+
+.login-button {
+  display: inline-block;
+  padding: 0.8rem 2rem;
+  background-color: #1089ff; /* 파란색 */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.login-button:hover {
+  background-color: #0d74cc; /* 더 짙은 파란색 */
 }
 </style>
